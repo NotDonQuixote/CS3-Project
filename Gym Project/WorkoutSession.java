@@ -7,3 +7,4 @@ public class WorkoutSession {
     int capacity;
     String trainerUsername;
 }
+
