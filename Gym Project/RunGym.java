@@ -59,13 +59,13 @@ public class RunGym {
         System.out.print("pass: "); String p = sc.nextLine();
         Person x = Auth.login(u, p);
         if (x instanceof Administrator) {
-            ActivityLogger.log(u, "logged in");
+            ActivityLogger.log(u, "logged in as admin" + x.username);
             adminMenu(sc, u);
         } else if (x instanceof Member) {
-            ActivityLogger.log(u, "logged in");
+            ActivityLogger.log(u, "logged in as member" + x.username);
             memberMenu(sc);
         } else if (x instanceof Trainer) {
-            ActivityLogger.log(u, "logged in");
+            ActivityLogger.log(u, "logged in as trainer" + x.username);
             trainerMenu(sc, x);
         }
     }
@@ -454,19 +454,21 @@ public class RunGym {
             System.out.println("Logged in as Trainer" +(x.firstName));
             System.out.println(" ");
             System.out.println("1 View Sessions");
-            System.out.println("2 View Members");
-            System.out.println("4 Manage my Sessions");
-            System.out.println("5 Sign Out");
+            System.out.println("2 Manage my Sessions");
+            System.out.println("3 Sign Out");
             String c = sc.nextLine();
-            if (c.equals("1")){
-                viewSessions(x);
+            switch (c){
+              case "1" -> viewSessions(x);
+              case "2" -> manageSessions (sc, x.username);
+              case "3" -> {
+                    return;
+                }
             }
+
         }
     }
 
     static void viewSessions(Person p){
-        //changes based on if used by a customer or staff member
-//TODO: Find a way to search by trainer username and display all sessions
         for (int i = 0; i < DataStore.sessionCount; i++) {
             if (DataStore.sessions[i].trainerUsername.equals (p.username)) {
                 System.out.println (
