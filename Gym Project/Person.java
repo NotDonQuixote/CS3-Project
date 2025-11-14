@@ -6,7 +6,7 @@ public class Person {
     String username;
     String password;
 
-
+//Customers and Members mean the same thing
     class Customer extends Person{
         String startDate;
         String endDate;

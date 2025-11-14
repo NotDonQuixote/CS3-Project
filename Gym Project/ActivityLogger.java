@@ -1,5 +1,4 @@
 import java.io.FileWriter;
-
 public class ActivityLogger {
     public static void log(String user, String action) {
         try {

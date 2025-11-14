@@ -1,6 +1,7 @@
 import java.util.Scanner;
 
 public class RunGym {
+    //main method
     public static void main(String[] args) {
         CsvIO.loadUsers("GymUsersData.csv");
         CsvIO.loadSessions("GymSessions.csv");
@@ -58,6 +59,7 @@ public class RunGym {
         System.out.print("user: "); String u = sc.nextLine();
         System.out.print("pass: "); String p = sc.nextLine();
         Person x = Auth.login(u, p);
+        //Checks person type to show the right menu
         if (x instanceof Administrator) {
             ActivityLogger.log(u, "logged in as admin" + x.username);
             adminMenu(sc, u);
@@ -69,7 +71,7 @@ public class RunGym {
             trainerMenu(sc, x);
         }
     }
-
+//74-443 - Admin functions
     static void adminMenu(Scanner sc, String currentUser) {
         while (true) {
             System.out.println("Logged in as admin: " + (currentUser));
@@ -102,6 +104,7 @@ public class RunGym {
             System.out.println("5 Back");
             String c = sc.nextLine();
             switch (c) {
+                //Gonna make this a method that will also call when a member registers -Dante
                 case "1" -> {
                     System.out.print("first: ");
                     String f = sc.nextLine();
@@ -139,7 +142,7 @@ public class RunGym {
             }
         }
     }
-
+//Changes the member objects, but hasn't been tested yet
     static void updateMember(Scanner sc, String currentUser) {
         System.out.print("user: "); String u = sc.nextLine();
         Member m = Auth.findMember(u);
@@ -254,7 +257,7 @@ public class RunGym {
             }
         }
     }
-
+//Searches for a trainer by iterating through the database
     static Trainer findTrainer(String u) {
         for (int i = 0; i < DataStore.trainerCount; i++) {
             if (DataStore.trainers[i].username.equals(u)) return DataStore.trainers[i];
@@ -274,7 +277,8 @@ public class RunGym {
         }
         return false;
     }
-
+//Trainers can use this too.
+//TODO: Im going to see if we can make it to where only the trainer's sessions will work if they aren't an admin
     static void manageSessions(Scanner sc, String currentUser) {
         while (true) {
             System.out.println("Manage Sessions");
@@ -362,7 +366,7 @@ public class RunGym {
         }
         return false;
     }
-
+//Membership plan Manager
     static void managePlans(Scanner sc, String currentUser) {
         while (true) {
             System.out.println("1 Add");
@@ -467,7 +471,7 @@ public class RunGym {
 
         }
     }
-
+//Displays sessions that are linked to the trainer's username
     static void viewSessions(Person p){
         for (int i = 0; i < DataStore.sessionCount; i++) {
             if (DataStore.sessions[i].trainerUsername.equals (p.username)) {

@@ -1,6 +1,9 @@
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+//Error: java: package or.junit.jupiter.api does not exist
+//My IDE doesn't seem to have this dependency, and I'm trying to find it to get it working -Dante
+
 public class AuthLoginTest {
 
     @Test
