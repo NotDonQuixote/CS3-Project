@@ -1,3 +1,16 @@
+/*
+ * Team 4
+ * Name: Christian Lopez-Matulessy, Dante Morales, Cesar Trevizo
+ * Date: 11/16/2025
+ * Course: CS 3331 – Advanced Object-Oriented Programming
+ * Instructor: Dr. Bhanukiran Gurijala
+ * Project Part 1 - Gym Management System
+ * Honesty Statement: We completed this work entirely on our own
+ * without any outside sources, including peers,
+ * experts, or online sources.
+ */
+
+
 import java.util.Scanner;
 
 public class RunGym {
@@ -23,15 +36,19 @@ public class RunGym {
             System.out.println("2 Login");
             System.out.println("3 Exit");
             String c = sc.nextLine();
+
+            // allow EXIT or 3 to quit
+            if (c.equalsIgnoreCase("EXIT") || c.equals("3")) {
+                CsvIO.saveUsers("GymUsersData.csv");
+                CsvIO.saveSessions("GymSessions.csv");
+                CsvIO.savePlans("GymPlans.csv");
+                return;
+            }
+
             switch (c) {
                 case "1" -> register(sc);
                 case "2" -> login(sc);
-                case "3" -> {
-                    CsvIO.saveUsers("GymUsersData.csv");
-                    CsvIO.saveSessions("GymSessions.csv");
-                    CsvIO.savePlans("GymPlans.csv");
-                    return;
-                }
+                // anything else just loops again
             }
         }
     }
@@ -77,21 +94,137 @@ public class RunGym {
             System.out.println("Logged in as admin: " + (currentUser));
             System.out.println("1 Manage Members");
             System.out.println("2 Manage Trainers");
-            System.out.println("3 Manage Workout Sessions");
-            System.out.println("4 Manage Membership Plans");
-            System.out.println("5 Sign Out");
+            System.out.println("3 Manage Admins");
+            System.out.println("4 Manage Workout Sessions");
+            System.out.println("5 Manage Membership Plans");
+            System.out.println("6 Sign Out");
             String c = sc.nextLine();
             switch (c) {
                 case "1" -> manageMembers(sc, currentUser);
                 case "2" -> manageTrainers(sc, currentUser);
-                case "3" -> manageSessions(sc, currentUser);
-                case "4" -> managePlans(sc, currentUser);
+                case "3" -> manageAdmins(sc, currentUser);
+                case "4" -> manageSessions(sc, currentUser);
+                case "5" -> managePlans(sc, currentUser);
+                case "6" -> {
+                    return;
+                }
+            }
+        }
+    }
+
+    static void manageAdmins(Scanner sc, String currentUser) {
+        while (true) {
+            System.out.println("Manage Admins");
+            System.out.println(" ");
+            System.out.println("1 Add");
+            System.out.println("2 View");
+            System.out.println("3 Update");
+            System.out.println("4 Delete");
+            System.out.println("5 Back");
+            String c = sc.nextLine();
+            switch (c) {
+                case "1" -> {
+                    System.out.print("first: ");
+                    String f = sc.nextLine();
+                    System.out.print("last: ");
+                    String l = sc.nextLine();
+                    System.out.print("user: ");
+                    String u = sc.nextLine();
+                    if (Auth.usernameTaken(u)) continue;
+                    System.out.print("pass: ");
+                    String p = sc.nextLine();
+                    Administrator a = new Administrator();
+                    a.firstName = f;
+                    a.lastName = l;
+                    a.username = u;
+                    a.password = p;
+                    DataStore.admins[DataStore.adminCount] = a;
+                    DataStore.adminCount++;
+                    ActivityLogger.log(currentUser, "added admin " + u);
+                }
+                case "2" -> {
+                    System.out.print("user or ALL: ");
+                    String q = sc.nextLine();
+                    if (q.equals("ALL")) {
+                        for (int i = 0; i < DataStore.adminCount; i++) {
+                            System.out.println(DataStore.admins[i].username);
+                        }
+                    } else {
+                        Administrator a = findAdmin(q);
+                        if (a != null) System.out.println(a.username);
+                        else System.out.println("Admin not found.");
+                    }
+                }
+                case "3" -> {
+                    System.out.print("user: ");
+                    String u = sc.nextLine();
+                    Administrator a = findAdmin(u);
+                    if (a == null) {
+                        System.out.println("Admin not found.");
+                    } else {
+                        System.out.println("1 Change Name");
+                        System.out.println("2 Change Password");
+                        System.out.println("3 Back");
+                        String opt = sc.nextLine();
+                        if (opt.equals("1")) {
+                            System.out.print("first: ");
+                            a.firstName = sc.nextLine();
+                            System.out.print("last: ");
+                            a.lastName = sc.nextLine();
+                            ActivityLogger.log(currentUser, "updated admin name " + u);
+                        } else if (opt.equals("2")) {
+                            System.out.print("new password: ");
+                            a.password = sc.nextLine();
+                            ActivityLogger.log(currentUser, "changed admin password " + u);
+                        }
+                    }
+                }
+                case "4" -> {
+                    System.out.print("user: ");
+                    String u = sc.nextLine();
+                    Administrator a = findAdmin(u);
+                    if (a == null) {
+                        System.out.println("Admin not found.");
+                    } else {
+                        System.out.print("Are you sure you want to delete this admin? (Y/N): ");
+                        String confirm = sc.nextLine();
+                        if (confirm.equalsIgnoreCase("Y")) {
+                            if (deleteAdmin(u)) {
+                                ActivityLogger.log(currentUser, "deleted admin " + u);
+                            }
+                        } else {
+                            System.out.println("Delete cancelled.");
+                        }
+                    }
+                }
                 case "5" -> {
                     return;
                 }
             }
         }
     }
+
+
+    static Administrator findAdmin(String u) {
+        for (int i = 0; i < DataStore.adminCount; i++) {
+            if (DataStore.admins[i].username.equals(u)) return DataStore.admins[i];
+        }
+        return null;
+    }
+
+    static boolean deleteAdmin(String u) {
+        for (int i = 0; i < DataStore.adminCount; i++) {
+            if (DataStore.admins[i].username.equals(u)) {
+                DataStore.admins[i] = DataStore.admins[DataStore.adminCount - 1];
+                DataStore.admins[DataStore.adminCount - 1] = null;
+                DataStore.adminCount--;
+                return true;
+            }
+        }
+        return false;
+    }
+
+
 
     static void manageMembers(Scanner sc, String currentUser) {
         while (true) {
@@ -127,15 +260,34 @@ public class RunGym {
                         }
                     } else {
                         Member m = Auth.findMember(q);
-                        if (m != null) System.out.println(m.username);
+                        if (m != null) {
+                            System.out.println(m.username);
+                        } else {
+                            System.out.println("Member not found.");
+                        }
                     }
                 }
+
                 case "3" -> updateMember(sc, currentUser);
                 case "4" -> {
                     System.out.print("user: ");
                     String u = sc.nextLine();
-                    if (Auth.deleteMember(u)) ActivityLogger.log(currentUser, "deleted member " + u);
+                    Member m = Auth.findMember(u);
+                    if (m == null) {
+                        System.out.println("Member not found.");
+                    } else {
+                        System.out.print("Are you sure you want to delete this member? (Y/N): ");
+                        String confirm = sc.nextLine();
+                        if (confirm.equalsIgnoreCase("Y")) {
+                            if (Auth.deleteMember(u)) {
+                                ActivityLogger.log(currentUser, "deleted member " + u);
+                            }
+                        } else {
+                            System.out.println("Delete cancelled.");
+                        }
+                    }
                 }
+
                 case "5" -> {
                     return;
                 }
@@ -144,9 +296,13 @@ public class RunGym {
     }
 //Changes the member objects, but hasn't been tested yet
     static void updateMember(Scanner sc, String currentUser) {
-        System.out.print("user: "); String u = sc.nextLine();
+        System.out.print("user: ");
+        String u = sc.nextLine();
         Member m = Auth.findMember(u);
-        if (m == null) return;
+        if (m == null) {
+            System.out.println("Member not found.");
+            return;
+        }
         while (true) {
             System.out.println("Update Member");
             System.out.println(" ");
@@ -249,8 +405,20 @@ public class RunGym {
                 case "4" -> {
                     System.out.print("user: ");
                     String u = sc.nextLine();
-                    if (deleteTrainer(u)) ActivityLogger.log(currentUser, "deleted trainer " + u);
+                    Trainer t = findTrainer(u);
+                    if (t != null) {
+                        System.out.print("Are you sure you want to delete this trainer? (Y/N): ");
+                        String confirm = sc.nextLine();
+                        if (confirm.equalsIgnoreCase("Y")) {
+                            if (deleteTrainer(u)) {
+                                ActivityLogger.log(currentUser, "deleted trainer " + u);
+                            }
+                        } else {
+                            System.out.println("Delete cancelled.");
+                        }
+                    }
                 }
+
                 case "5" -> {
                     return;
                 }
@@ -311,17 +479,27 @@ public class RunGym {
                     ActivityLogger.log(currentUser, "added session " + s.sessionId);
                 }
                 case "2" -> {
-                    System.out.print("id or ALL: ");
+                    System.out.print("SessionID, SessionName, Date, or ALL: ");
                     String q = sc.nextLine();
                     if (q.equals("ALL")) {
                         for (int i = 0; i < DataStore.sessionCount; i++) {
                             System.out.println(DataStore.sessions[i].sessionId);
                         }
                     } else {
-                        WorkoutSession s = findSession(q);
-                        if (s != null) System.out.println(s.sessionId);
+                        boolean found = false;
+                        for (int i = 0; i < DataStore.sessionCount; i++) {
+                            WorkoutSession s = DataStore.sessions[i];
+                            if (s.sessionId.equals(q) || s.sessionName.equals(q) || s.date.equals(q)) {
+                                System.out.println(s.sessionId);
+                                found = true;
+                            }
+                        }
+                        if (!found) {
+                            System.out.println("Session not found.");
+                        }
                     }
                 }
+
                 case "3" -> {
                     System.out.print("sessionId: ");
                     String id = sc.nextLine();
@@ -339,8 +517,22 @@ public class RunGym {
                 case "4" -> {
                     System.out.print("sessionId: ");
                     String id = sc.nextLine();
-                    if (deleteSession(id)) ActivityLogger.log(currentUser, "deleted session " + id);
+                    WorkoutSession s = findSession(id);
+                    if (s != null) {
+                        System.out.print("Are you sure you want to delete this session? (Y/N): ");
+                        String confirm = sc.nextLine();
+                        if (confirm.equalsIgnoreCase("Y")) {
+                            if (deleteSession(id)) {
+                                ActivityLogger.log(currentUser, "deleted session " + id);
+                            }
+                        } else {
+                            System.out.println("Delete cancelled.");
+                        }
+                    } else {
+                        System.out.println("Session not found.");
+                    }
                 }
+
                 case "5" -> {
                     return;
                 }
@@ -397,9 +589,14 @@ public class RunGym {
                         }
                     } else {
                         MembershipPlan p = findPlan(q);
-                        if (p != null) System.out.println(p.planName);
+                        if (p != null) {
+                            System.out.println(p.planName);
+                        } else {
+                            System.out.println("Plan not found.");
+                        }
                     }
                 }
+
                 case "3" -> {
                     System.out.print("planName: ");
                     String name = sc.nextLine();
@@ -415,8 +612,22 @@ public class RunGym {
                 case "4" -> {
                     System.out.print("planName: ");
                     String name = sc.nextLine();
-                    if (deletePlan(name)) ActivityLogger.log(currentUser, "deleted plan " + name);
+                    MembershipPlan p = findPlan(name);
+                    if (p != null) {
+                        System.out.print("Are you sure you want to delete this plan? (Y/N): ");
+                        String confirm = sc.nextLine();
+                        if (confirm.equalsIgnoreCase("Y")) {
+                            if (deletePlan(name)) {
+                                ActivityLogger.log(currentUser, "deleted plan " + name);
+                            }
+                        } else {
+                            System.out.println("Delete cancelled.");
+                        }
+                    } else {
+                        System.out.println("Plan not found.");
+                    }
                 }
+
                 case "5" -> {
                     return;
                 }
@@ -482,6 +693,10 @@ public class RunGym {
             }
         }
     }
+
+
+
+
 
     static int parseIntSafe(String s) {
         try { return Integer.parseInt(s); } catch (Exception e) { return 0; }

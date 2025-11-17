@@ -1,10 +1,15 @@
 import java.io.FileWriter;
+import java.io.IOException;
+import java.time.LocalDateTime;
+
 public class ActivityLogger {
-    public static void log(String user, String action) {
-        try {
-            FileWriter w = new FileWriter("activity.log", true);
-            w.write(user + " " + action + "\n");
-            w.close();
-        } catch (Exception e) {}
+    public static void log(String username, String action) {
+        try (FileWriter writer = new FileWriter("ActivityLog.txt", true)) {
+            String time = LocalDateTime.now().toString(); // simple ISO format
+            writer.write(time + " - " + username + " " + action + System.lineSeparator());
+        } catch (IOException e) {
+            // keep it simple: don't crash
+            System.out.println("Could not write to log file.");
+        }
     }
 }
