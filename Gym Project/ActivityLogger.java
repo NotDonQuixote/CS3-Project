@@ -5,10 +5,9 @@ import java.time.LocalDateTime;
 public class ActivityLogger {
     public static void log(String username, String action) {
         try (FileWriter writer = new FileWriter("ActivityLog.txt", true)) {
-            String time = LocalDateTime.now().toString(); // simple ISO format
+            String time = LocalDateTime.now().toString();
             writer.write(time + " - " + username + " " + action + System.lineSeparator());
         } catch (IOException e) {
-            // keep it simple: don't crash
             System.out.println("Could not write to log file.");
         }
     }
