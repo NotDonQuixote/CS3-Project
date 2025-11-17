@@ -1,7 +1,22 @@
+/*
+ * Team 4
+ * Name: Christian Lopez-Matulessy, Dante Morales, Cesar Trevizo
+ * Date: 11/16/2025
+ * Course: CS 3331 – Advanced Object-Oriented Programming
+ * Instructor: Dr. Bhanukiran Gurijala
+ * Project Part 1 - Gym Management System
+ * Honesty Statement: We completed this work entirely on our own
+ * without any outside sources, including peers,
+ * experts, or online sources.
+ */
+
 import java.io.File;
 import java.io.FileWriter;
 import java.util.Scanner;
 
+/**
+ * Utility class for loading and saving users, sessions, and membership plans to CSV files.
+ */
 public class CsvIO {
     public static void loadUsers(String path) {
         try {

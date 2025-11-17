@@ -13,6 +13,10 @@
 
 import java.util.Scanner;
 
+/**
+ * Main class for the Gym Management System.
+ * Loads data from CSV files, shows menus, and saves data on exit.
+ */
 public class RunGym {
     //main method
     public static void main(String[] args) {
@@ -60,8 +64,12 @@ public class RunGym {
         System.out.print("first: "); String f = sc.nextLine();
         System.out.print("last: "); String l = sc.nextLine();
         System.out.print("user: "); String u = sc.nextLine();
-        if (Auth.usernameTaken(u)) return;
+        if (Auth.usernameTaken(u)) {
+            System.out.println("Username already taken. Please choose a different username.");
+            return;
+        }
         System.out.print("pass: "); String p = sc.nextLine();
+
         if (r.equals("1")) {
             System.out.print("specialty: "); String s = sc.nextLine();
             Auth.registerTrainer(u, p, f, l, s);
@@ -143,7 +151,7 @@ public class RunGym {
                     ActivityLogger.log(currentUser, "added admin " + u);
                 }
                 case "2" -> {
-                    System.out.print("user or ALL: ");
+                    System.out.print("ID, name, or username, or ALL: ");
                     String q = sc.nextLine();
                     if (q.equals("ALL")) {
                         for (int i = 0; i < DataStore.adminCount; i++) {
@@ -156,7 +164,7 @@ public class RunGym {
                     }
                 }
                 case "3" -> {
-                    System.out.print("user: ");
+                    System.out.print("ID, name, or username: ");
                     String u = sc.nextLine();
                     Administrator a = findAdmin(u);
                     if (a == null) {
@@ -180,7 +188,7 @@ public class RunGym {
                     }
                 }
                 case "4" -> {
-                    System.out.print("user: ");
+                    System.out.print("ID, name, or username: ");
                     String u = sc.nextLine();
                     Administrator a = findAdmin(u);
                     if (a == null) {
@@ -205,12 +213,20 @@ public class RunGym {
     }
 
 
-    static Administrator findAdmin(String u) {
+    static Administrator findAdmin(String key) {
+        // Assumption: we treat username as the ID,
+        // and also allow search by first or last name.
         for (int i = 0; i < DataStore.adminCount; i++) {
-            if (DataStore.admins[i].username.equals(u)) return DataStore.admins[i];
+            Administrator a = DataStore.admins[i];
+            if (a.username.equals(key) ||
+                    a.firstName.equals(key) ||
+                    a.lastName.equals(key)) {
+                return a;
+            }
         }
         return null;
     }
+
 
     static boolean deleteAdmin(String u) {
         for (int i = 0; i < DataStore.adminCount; i++) {
@@ -252,7 +268,7 @@ public class RunGym {
                     ActivityLogger.log(currentUser, "added member " + u);
                 }
                 case "2" -> {
-                    System.out.print("user or ALL: ");
+                    System.out.print("ID, name, or username, or ALL: ");
                     String q = sc.nextLine();
                     if (q.equals("ALL")) {
                         for (int i = 0; i < DataStore.memberCount; i++) {
@@ -270,7 +286,7 @@ public class RunGym {
 
                 case "3" -> updateMember(sc, currentUser);
                 case "4" -> {
-                    System.out.print("user: ");
+                    System.out.print("ID, name, or username: ");
                     String u = sc.nextLine();
                     Member m = Auth.findMember(u);
                     if (m == null) {
@@ -296,7 +312,7 @@ public class RunGym {
     }
 //Changes the member objects, but hasn't been tested yet
     static void updateMember(Scanner sc, String currentUser) {
-        System.out.print("user: ");
+        System.out.print("ID, name, or username: ");
         String u = sc.nextLine();
         Member m = Auth.findMember(u);
         if (m == null) {
@@ -381,7 +397,7 @@ public class RunGym {
                     ActivityLogger.log(currentUser, "added trainer " + u);
                 }
                 case "2" -> {
-                    System.out.print("user or ALL: ");
+                    System.out.print("ID, name, or username, or ALL: ");
                     String q = sc.nextLine();
                     if (q.equals("ALL")) {
                         for (int i = 0; i < DataStore.trainerCount; i++) {
@@ -393,7 +409,7 @@ public class RunGym {
                     }
                 }
                 case "3" -> {
-                    System.out.print("user: ");
+                    System.out.print("ID, name, or username: ");
                     String u = sc.nextLine();
                     Trainer t = findTrainer(u);
                     if (t != null) {
@@ -403,7 +419,7 @@ public class RunGym {
                     }
                 }
                 case "4" -> {
-                    System.out.print("user: ");
+                    System.out.print("ID, name, or username: ");
                     String u = sc.nextLine();
                     Trainer t = findTrainer(u);
                     if (t != null) {
@@ -426,13 +442,21 @@ public class RunGym {
         }
     }
 //Searches for a trainer by iterating through the database
-    static Trainer findTrainer(String u) {
+    static Trainer findTrainer(String key) {
+        // Assumption: we treat username as the ID,
+        // and also allow search by first or last name.
         for (int i = 0; i < DataStore.trainerCount; i++) {
-            if (DataStore.trainers[i].username.equals(u)) return DataStore.trainers[i];
+            Trainer t = DataStore.trainers[i];
+            if (t.username.equals(key) ||
+                    t.firstName.equals(key) ||
+                    t.lastName.equals(key)) {
+                return t;
+            }
         }
         System.out.println("No Trainer Found.");
         return null;
     }
+
 
     static boolean deleteTrainer(String u) {
         for (int i = 0; i < DataStore.trainerCount; i++) {
@@ -669,12 +693,15 @@ public class RunGym {
             System.out.println("Logged in as Trainer" +(x.firstName));
             System.out.println(" ");
             System.out.println("1 View Sessions");
-            System.out.println("2 Manage my Sessions");
+            System.out.println("2 View Members");
             System.out.println("3 Sign Out");
             String c = sc.nextLine();
             switch (c){
               case "1" -> viewSessions(x);
-              case "2" -> manageSessions (sc, x.username);
+                case "2" -> {
+                    // Placeholder for Part 2
+                    System.out.println("View Members feature will be implemented in the next part.");
+                }
               case "3" -> {
                     return;
                 }

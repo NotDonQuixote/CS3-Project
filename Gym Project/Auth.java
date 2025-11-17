@@ -1,3 +1,19 @@
+/*
+ * Team 4
+ * Name: Christian Lopez-Matulessy, Dante Morales, Cesar Trevizo
+ * Date: 11/16/2025
+ * Course: CS 3331 – Advanced Object-Oriented Programming
+ * Instructor: Dr. Bhanukiran Gurijala
+ * Project Part 1 - Gym Management System
+ * Honesty Statement: We completed this work entirely on our own
+ * without any outside sources, including peers,
+ * experts, or online sources.
+ */
+
+/**
+ * Authentication and user lookup helper methods for members, trainers, and admins.
+ */
+
 public class Auth {
     public static boolean usernameTaken(String u) {
         for (int i = 0; i < DataStore.memberCount; i++) {
@@ -42,12 +58,20 @@ public class Auth {
         return null;
     }
 
-    public static Member findMember(String u) {
+    public static Member findMember(String key) {
+        // Assumption: we treat username as the ID,
+        // and also allow search by first or last name.
         for (int i = 0; i < DataStore.memberCount; i++) {
-            if (DataStore.members[i].username.equals(u)) return DataStore.members[i];
+            Member m = DataStore.members[i];
+            if (m.username.equals(key) ||
+                    m.firstName.equals(key) ||
+                    m.lastName.equals(key)) {
+                return m;
+            }
         }
         return null;
     }
+
 
     public static boolean deleteMember(String u) {
         for (int i = 0; i < DataStore.memberCount; i++) {
