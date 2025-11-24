@@ -13,6 +13,6 @@
 public class Member extends Person implements Identifiable {
     String startDate;
     String endDate;
-    int membership;
+    String membership;
     public String getUsername() { return username; }
 }

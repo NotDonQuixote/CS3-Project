@@ -9,6 +9,7 @@
  * without any outside sources, including peers,
  * experts, or online sources.
  */
+import java.util.ArrayList;
 
 public class WorkoutSession {
     String sessionId;
@@ -18,6 +19,24 @@ public class WorkoutSession {
     String time;
     int capacity;
     String trainerUsername;
-    //TODO: add a method to keep a running count to see if a session is at max capacity
-}
+    ArrayList<String> members = new ArrayList<> ();
 
+    public void addMember(String person){
+        if (capacity > members.size ()){
+            members.add(person);
+        }
+        else{
+            System.out.println ("This session is at max capacity.");
+        }
+    }
+
+    public String findTrainer(){
+        //find the trainer by their username and return the Trainer's name on the client side
+        for (int i = 0; i < DataStore.trainerCount; i++) {
+            if (DataStore.trainers[i].username.equals (trainerUsername)) {
+                return(DataStore.trainers[i].firstName);
+            }
+        }
+        return(null);
+    }
+}

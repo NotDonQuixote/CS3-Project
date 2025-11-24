@@ -44,7 +44,7 @@ public class CsvIO {
                     m.lastName = val(x,4);
                     m.startDate = val(x,5);
                     m.endDate = val(x,6);
-                    m.membership = parseIntSafe(val(x,7));
+                    m.membership = (val(x,7));
                     DataStore.members[DataStore.memberCount++] = m;
                 } else if (role.equalsIgnoreCase("TRAINER")) {
                     Trainer t = new Trainer();

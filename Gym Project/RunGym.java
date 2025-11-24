@@ -11,6 +11,8 @@
  */
 
 
+import javax.xml.crypto.Data;
+import java.util.Arrays;
 import java.util.Scanner;
 
 /**
@@ -90,7 +92,7 @@ public class RunGym {
             adminMenu(sc, u);
         } else if (x instanceof Member) {
             ActivityLogger.log(u, "logged in as member" + x.username);
-            memberMenu(sc);
+            memberMenu(sc, (Member) x);
         } else if (x instanceof Trainer) {
             ActivityLogger.log(u, "logged in as trainer" + x.username);
             trainerMenu(sc, x);
@@ -212,7 +214,6 @@ public class RunGym {
         }
     }
 
-
     static Administrator findAdmin(String key) {
         // Assumption: we treat username as the ID,
         // and also allow search by first or last name.
@@ -227,7 +228,6 @@ public class RunGym {
         return null;
     }
 
-
     static boolean deleteAdmin(String u) {
         for (int i = 0; i < DataStore.adminCount; i++) {
             if (DataStore.admins[i].username.equals(u)) {
@@ -239,8 +239,6 @@ public class RunGym {
         }
         return false;
     }
-
-
 
     static void manageMembers(Scanner sc, String currentUser) {
         while (true) {
@@ -356,7 +354,7 @@ public class RunGym {
                 case "4" -> {
                     System.out.print("plan id: ");
                     String pid = sc.nextLine();
-                    m.membership = parseIntSafe(pid);
+                    m.membership = (pid);
                     System.out.print("start: ");
                     m.startDate = sc.nextLine();
                     System.out.print("end: ");
@@ -470,7 +468,6 @@ public class RunGym {
         return false;
     }
 //Trainers can use this too.
-//TODO: Im going to see if we can make it to where only the trainer's sessions will work if they aren't an admin
     static void manageSessions(Scanner sc, String currentUser) {
         while (true) {
             System.out.println("Manage Sessions");
@@ -678,29 +675,158 @@ public class RunGym {
         return false;
     }
 
-    static void memberMenu(Scanner sc) {
+    static void memberMenu(Scanner sc, Member member) {
         while (true) {
-            System.out.println("1 Manage Plan");
-            System.out.println("2 Enroll in a Session");
-            System.out.println("3 Sign Out");
+            System.out.println ("Welcome, " + member.username);
+            System.out.println("""
+            What would you like to do?\
+            1 Manage Plan\
+            2 Find Sessions\
+            3 Join a Session\
+            4 Sign Out\
+            """);
             String c = sc.nextLine();
-            if (c.equals("3")) return;
+            switch (c) {
+                case "1" -> memberPlanManager(sc, member);
+                case "2" -> sessionFinder (sc, member);
+                case "3" -> {
+                    System.out.println ("Plese enter the ID of the session you would like to join");
+                    String id = sc.nextLine ();
+                    for(int i = 0; i < DataStore.sessionCount; i++){
+                        if(DataStore.sessions[i].sessionId.equals (id))
+                            DataStore.sessions[i].addMember (member.firstName);
+                        System.out.println ("Successfully joined session" + DataStore.sessions[i].sessionId);
+                    }
+                }
+                default -> {
+                    return;
+                }
+            }
         }
     }
-//TODO: make this interactable with the trainer classes
+
+    public static void sessionFinder(Scanner sc, Member member){
+        while (true) {
+            System.out.println ("""
+                    How would you like to search for a session t join?\
+                    1 Name\
+                    2 Type\
+                    3 Trainer\
+                    """);
+            String input = sc.nextLine ();
+            switch(input){
+                case "1" -> {
+                    System.out.println ("Please enter the name of the session you would like to find: ");
+                    String name = sc.nextLine ();
+                    for (int i = 0; i < DataStore.sessionCount; i++){
+                        if(DataStore.sessions[i].sessionName.equals (name)){
+                            System.out.println(
+                                    "Session Found: \n" +
+                                    "Name: " + name +
+                                    "Session ID: " + DataStore.sessions[i].sessionId +
+                                    "Trainer: " + DataStore.sessions[i].trainerUsername +
+                                    "Date: " + DataStore.sessions[i].date +
+                                    "Time: " + DataStore.sessions[i].time
+                                    );
+                        }
+                    }
+                }
+                case "2" -> {
+                    System.out.println ("Please enter the type of session you would like to find: ");
+                    String type = sc.nextLine ();
+                    for (int i = 0; i < DataStore.sessionCount; i++){
+                        if(DataStore.sessions[i].type.equals (type)){
+                            System.out.println(
+                                    "Session Found: \n" +
+                                            "Name: " + DataStore.sessions[i].sessionName +
+                                            "Session ID: " + DataStore.sessions[i].sessionId +
+                                            "Trainer: " + DataStore.sessions[i].trainerUsername +
+                                            "Date: " + DataStore.sessions[i].date +
+                                            "Time: " + DataStore.sessions[i].time
+                            );
+                        }
+                    }
+                }
+                case "3" -> {
+                    System.out.println ("Please enter the name of the trainer you would like to find: ");
+                    String name = sc.nextLine ();
+                    for (int i = 0; i < DataStore.sessionCount; i++){
+                        //this is using a search function in the Session class
+                        // assuming the customers will know
+                        // the name of the trainers, but not their usernames
+                        if(DataStore.sessions[i].findTrainer().equals (name)){
+                            System.out.println(
+                                    "Session Found: \n" +
+                                            "Name: " + DataStore.sessions[i].sessionName +
+                                            "Session ID: " + DataStore.sessions[i].sessionId +
+                                            "Trainer: " + name +
+                                            "Date: " + DataStore.sessions[i].date +
+                                            "Time: " + DataStore.sessions[i].time
+                            );
+                        }
+                    }
+                }
+                default -> memberMenu (sc, member);
+            }
+        }
+    }
+
+    public static void memberPlanManager(Scanner sc, Member member){
+        System.out.println ("""
+                What would you like to do with your membership plan?\
+                
+                1 Change Membership Plan\
+                
+                2 Cancel Membership Plan\
+                
+                3 return to Member Menu
+                """);
+        String c = sc.nextLine ();
+        switch(c){
+            case "1" -> {
+                System.out.println ("Membership Plans: ");
+                for(int i = 0; i < DataStore.plans.length; i++){
+                    System.out.println (i + DataStore.plans[i].planName);
+                    System.out.println (i + DataStore.plans[i].price);
+                }
+                System.out.println ("Which plan would you like to switch to?");
+                String choice = sc.nextLine ();
+                //Updates membership to corresponding plan
+                member.membership = DataStore.plans[Integer.parseInt (choice)].planName;
+            }
+            case "2" -> {
+                System.out.println ("Are you sure you would like to cancel your membership with us? (y/n)");
+                String choice = sc.nextLine ();
+                if (choice.equals ("y") | choice.equals ("1") | choice.equals ("yes")){
+                    //deletes the member
+                    member = null;
+                    System.out.println ("Membership cancelled.");
+                    System.out.println ("Returning to login menu.");
+                    login(sc);
+                }else{
+                    System.out.println ("Returning...");
+                    memberPlanManager (sc, member);
+                }
+            }
+            default -> memberMenu (sc, member);
+        }
+    }
+//805-850 Trainer menu
     static void trainerMenu(Scanner sc, Person x) {
         while (true) {
             System.out.println("Logged in as Trainer" +(x.firstName));
             System.out.println(" ");
             System.out.println("1 View Sessions");
-            System.out.println("2 View Members");
+            System.out.println("2 View Session Members");
             System.out.println("3 Sign Out");
             String c = sc.nextLine();
             switch (c){
               case "1" -> viewSessions(x);
                 case "2" -> {
                     // Placeholder for Part 2
-                    System.out.println("View Members feature will be implemented in the next part.");
+                    System.out.println("Please enter the ID of the Session you wish to view: ");
+                    String sessionID = sc.nextLine ();
+                    viewSessionMembers(sessionID);
                 }
               case "3" -> {
                     return;
@@ -720,10 +846,16 @@ public class RunGym {
             }
         }
     }
-
-
-
-
+//Shows members who have joined a session
+    static void viewSessionMembers(String session){
+        for (int i = 0; i < DataStore.sessionCount; i++) {
+            if (DataStore.sessions[i].sessionId.equals(session)) {
+                System.out.println (
+                        "Name: " + DataStore.sessions[i].sessionName
+                                + DataStore.sessions[i].members);
+            }
+        }
+    }
 
     static int parseIntSafe(String s) {
         try { return Integer.parseInt(s); } catch (Exception e) { return 0; }
@@ -733,5 +865,3 @@ public class RunGym {
         try { return Double.parseDouble(s); } catch (Exception e) { return 0.0; }
     }
 }
-
-// GITHUB PUSH TEST (CJ)
