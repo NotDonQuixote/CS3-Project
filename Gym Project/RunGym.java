@@ -775,47 +775,102 @@ public class RunGym {
         }
     }
 
-    public static void memberPlanManager(Scanner sc, Member member){
-        System.out.println ("""
-                What would you like to do with your membership plan?\
-                
-                1 Change Membership Plan\
-                
-                2 Cancel Membership Plan\
-                
-                3 return to Member Menu
-                """);
-        String c = sc.nextLine ();
-        switch(c){
+    static void memberPlanManager(Scanner sc, Member member){
+        System.out.println("""
+            What would you like to do with your membership plan?
+
+            1 Change Membership Plan
+
+            2 Cancel Membership Plan
+
+            3 Return to Member Menu
+            """);
+        String c = sc.nextLine();
+        switch (c) {
             case "1" -> {
-                System.out.println ("Membership Plans: ");
-                for(int i = 0; i < DataStore.plans.length; i++){
-                    System.out.println (i + DataStore.plans[i].planName);
-                    System.out.println (i + DataStore.plans[i].price);
+                // ----- find current plan index -----
+                int currentIndex = -1;
+                if (member.membership != null && !member.membership.isBlank()) {
+                    for (int i = 0; i < DataStore.planCount; i++) {
+                        MembershipPlan p = DataStore.plans[i];
+                        if (p != null && p.planName.equalsIgnoreCase(member.membership)) {
+                            currentIndex = i;
+                            break;
+                        }
+                    }
                 }
-                System.out.println ("Which plan would you like to switch to?");
-                String choice = sc.nextLine ();
-                //Updates membership to corresponding plan
-                member.membership = DataStore.plans[Integer.parseInt (choice)].planName;
+
+                if (currentIndex == -1) {
+                    // no current plan → show all
+                    System.out.println("You are not currently enrolled in a plan.");
+                    System.out.println("Available plans:");
+                    for (int i = 0; i < DataStore.planCount; i++) {
+                        MembershipPlan p = DataStore.plans[i];
+                        if (p == null) continue;
+                        System.out.println(i + " " + p.planName + " - $" + p.price);
+                    }
+                } else {
+                    System.out.println("Your current plan: " + member.membership);
+                    System.out.println("You can upgrade to:");
+                    boolean anyUpgrade = false;
+                    for (int i = currentIndex + 1; i < DataStore.planCount; i++) {
+                        MembershipPlan p = DataStore.plans[i];
+                        if (p == null) continue;
+                        System.out.println(i + " " + p.planName + " - $" + p.price);
+                        anyUpgrade = true;
+                    }
+                    if (!anyUpgrade) {
+                        System.out.println("You are already on the highest plan. No upgrades available.");
+                        return; // back to member menu
+                    }
+                }
+
+                System.out.println("Enter the number of the plan you would like to choose, or press Enter to cancel:");
+                String choice = sc.nextLine().trim();
+                if (choice.isEmpty()) {
+                    System.out.println("No changes made.");
+                    return;
+                }
+
+                try {
+                    int idx = Integer.parseInt(choice);
+                    if (idx < 0 || idx >= DataStore.planCount || DataStore.plans[idx] == null) {
+                        System.out.println("Invalid choice.");
+                        return;
+                    }
+                    member.membership = DataStore.plans[idx].planName;
+                    System.out.println("Your membership has been updated to: " + member.membership);
+
+                    // persist change to CSV
+                    CsvIO.saveUsers("GymUsersData.csv");
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid input.");
+                }
             }
+
             case "2" -> {
-                System.out.println ("Are you sure you would like to cancel your membership with us? (y/n)");
-                String choice = sc.nextLine ();
-                if (choice.equals ("y") | choice.equals ("1") | choice.equals ("yes")){
-                    //deletes the member
-                    member = null;
-                    System.out.println ("Membership cancelled.");
-                    System.out.println ("Returning to login menu.");
+                System.out.println("Are you sure you would like to cancel your membership with us? (y/n)");
+                String choice = sc.nextLine();
+                if (choice.equalsIgnoreCase("y") ||
+                        choice.equals("1") ||
+                        choice.equalsIgnoreCase("yes")) {
+                    // for now you only clear the field; real delete would also remove from DataStore + CSV
+                    member.membership = "";
+                    System.out.println("Membership cancelled.");
+                    CsvIO.saveUsers("GymUsersData.csv");
+                    System.out.println("Returning to login menu.");
                     login(sc);
-                }else{
-                    System.out.println ("Returning...");
-                    memberPlanManager (sc, member);
+                } else {
+                    System.out.println("Returning...");
+                    memberPlanManager(sc, member);
                 }
             }
-            default -> memberMenu (sc, member);
+
+            default -> memberMenu(sc, member);
         }
     }
-//805-850 Trainer menu
+
+    //805-850 Trainer menu
     static void trainerMenu(Scanner sc, Person x) {
         while (true) {
             System.out.println("Logged in as Trainer" +(x.firstName));
