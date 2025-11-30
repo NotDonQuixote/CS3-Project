@@ -702,6 +702,7 @@ public class RunGym {
                         System.out.println ("Successfully joined session" + DataStore.sessions[i].sessionId);
                     }
                 }
+                case "4" -> memberMenu (sc, member);
                 default -> {
                     return;
                 }
@@ -712,10 +713,10 @@ public class RunGym {
     public static void sessionFinder(Scanner sc, Member member){
         while (true) {
             System.out.println ("""
-                    How would you like to search for a session t join?\
-                    1 Name\
-                    2 Type\
-                    3 Trainer\
+                    How would you like to search for a session to join?\n
+                    1 Name\n
+                    2 Type\n
+                    3 Trainer\n
                     """);
             String input = sc.nextLine ();
             switch(input){
@@ -726,10 +727,10 @@ public class RunGym {
                         if(DataStore.sessions[i].sessionName.equals (name)){
                             System.out.println(
                                     "Session Found: \n" +
-                                    "Name: " + name +
-                                    "Session ID: " + DataStore.sessions[i].sessionId +
-                                    "Trainer: " + DataStore.sessions[i].trainerUsername +
-                                    "Date: " + DataStore.sessions[i].date +
+                                    "Name: " + name + "\n" +
+                                    "Session ID: " + DataStore.sessions[i].sessionId +  "\n" +
+                                    "Trainer: " + DataStore.sessions[i].trainerUsername +  "\n" +
+                                    "Date: " + DataStore.sessions[i].date +  "\n" +
                                     "Time: " + DataStore.sessions[i].time
                                     );
                         }
@@ -742,12 +743,14 @@ public class RunGym {
                         if(DataStore.sessions[i].type.equals (type)){
                             System.out.println(
                                     "Session Found: \n" +
-                                            "Name: " + DataStore.sessions[i].sessionName +
-                                            "Session ID: " + DataStore.sessions[i].sessionId +
-                                            "Trainer: " + DataStore.sessions[i].trainerUsername +
-                                            "Date: " + DataStore.sessions[i].date +
+                                            "Name: " + DataStore.sessions[i].sessionName + "\n" +
+                                            "Session ID: " + DataStore.sessions[i].sessionId + "\n" +
+                                            "Trainer: " + DataStore.sessions[i].trainerUsername + "\n" +
+                                            "Date: " + DataStore.sessions[i].date + "\n" +
                                             "Time: " + DataStore.sessions[i].time
                             );
+                        }else{
+                            System.out.println ("No Session Found");
                         }
                     }
                 }
@@ -761,12 +764,14 @@ public class RunGym {
                         if(DataStore.sessions[i].findTrainer().equals (name)){
                             System.out.println(
                                     "Session Found: \n" +
-                                            "Name: " + DataStore.sessions[i].sessionName +
-                                            "Session ID: " + DataStore.sessions[i].sessionId +
-                                            "Trainer: " + name +
-                                            "Date: " + DataStore.sessions[i].date +
+                                            "Name: " + DataStore.sessions[i].sessionName +  "\n" +
+                                            "Session ID: " + DataStore.sessions[i].sessionId + "\n" +
+                                            "Trainer: " + name + "\n" +
+                                            "Date: " + DataStore.sessions[i].date + "\n" +
                                             "Time: " + DataStore.sessions[i].time
                             );
+                        }else{
+                            System.out.println ("No Session found. ");
                         }
                     }
                 }
@@ -873,7 +878,7 @@ public class RunGym {
     //805-850 Trainer menu
     static void trainerMenu(Scanner sc, Person x) {
         while (true) {
-            System.out.println("Logged in as Trainer" +(x.firstName));
+            System.out.println("Logged in as Trainer " +(x.firstName));
             System.out.println(" ");
             System.out.println("1 View Sessions");
             System.out.println("2 View Session Members");
@@ -882,7 +887,6 @@ public class RunGym {
             switch (c){
               case "1" -> viewSessions(x);
                 case "2" -> {
-                    // Placeholder for Part 2
                     System.out.println("Please enter the ID of the Session you wish to view: ");
                     String sessionID = sc.nextLine ();
                     viewSessionMembers(sessionID);

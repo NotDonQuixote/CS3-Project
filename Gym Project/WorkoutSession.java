@@ -36,6 +36,7 @@ public class WorkoutSession {
             if (DataStore.trainers[i].username.equals (trainerUsername)) {
                 return(DataStore.trainers[i].firstName);
             }
+
         }
         return(null);
     }
