@@ -26,15 +26,19 @@ public class RunGym {
         CsvIO.loadSessions("GymSessions.csv");
         CsvIO.loadPlans("GymPlans.csv");
 
-        if (DataStore.adminCount == 0) {
-            Administrator a = new Administrator();
-            a.username = "admin";
-            a.password = "admin";
-            a.firstName = "Admin";
-            a.lastName = "User";
-            DataStore.admins[0] = a;
-            DataStore.adminCount = 1;
-        }
+
+        Administrator a = new Administrator();
+        a.username = "admin";
+        a.password = "admin";
+        a.firstName = "Admin";
+        a.lastName = "User";
+        DataStore.admins[0] = a;
+        DataStore.adminCount = 1;
+
+        System.out.println ("FOR DEMO: Admin automatically created. ");
+        System.out.println ("Admin UserName: " + a.username);
+        System.out.println ("Admin Password: " + a.password);
+
         //Main menu
         Scanner sc = new Scanner(System.in);
         while (true) {
@@ -679,11 +683,11 @@ public class RunGym {
         while (true) {
             System.out.println ("Welcome, " + member.username);
             System.out.println("""
-            What would you like to do?\
-            1 Manage Plan\
-            2 Find Sessions\
-            3 Join a Session\
-            4 Sign Out\
+            What would you like to do?\n
+            1 Manage Plan\n
+            2 Find Sessions\n
+            3 Join a Session\n
+            4 Sign Out\n
             """);
             String c = sc.nextLine();
             switch (c) {

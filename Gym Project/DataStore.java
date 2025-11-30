@@ -17,7 +17,7 @@ public class DataStore {
     public static Trainer[] trainers = new Trainer[100];
     public static int trainerCount = 0;
 
-    public static Administrator[] admins = new Administrator[10];
+    public static Administrator[] admins = new Administrator[1];
     public static int adminCount = 0;
 
     public static WorkoutSession[] sessions = new WorkoutSession[200];

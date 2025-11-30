@@ -39,6 +39,7 @@ public class Auth {
         Trainer t = new Trainer();
         t.username = u; t.password = p; t.firstName = f; t.lastName = l; t.specialty = s;
         DataStore.trainers[DataStore.trainerCount] = t;
+        t.trainerID = DataStore.trainerCount;
         DataStore.trainerCount++;
     }
 
