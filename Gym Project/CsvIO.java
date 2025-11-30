@@ -397,6 +397,27 @@ public class CsvIO {
         return a;
     }
 
+    public static void appendProgress(int memberId, String sessionId) {
+        try {
+            File f = new File("progress.csv");
+            boolean newFile = !f.exists();
+
+            // open in append mode
+            FileWriter w = new FileWriter(f, true);
+
+            // if file didn't exist before, write a header
+            if (newFile) {
+                w.write("MemberID,SessionID\n");
+            }
+
+            w.write(memberId + "," + s(sessionId) + "\n");
+            w.close();
+        } catch (Exception e) {
+             System.out.println("Error writing progress.csv: " + e.getMessage());
+        }
+    }
+
+
     static int parseIntSafe(String s) {
         try { return Integer.parseInt(s); } catch (Exception e) { return 0; }
     }

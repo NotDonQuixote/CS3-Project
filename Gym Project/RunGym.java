@@ -681,33 +681,100 @@ public class RunGym {
 
     static void memberMenu(Scanner sc, Member member) {
         while (true) {
-            System.out.println ("Welcome, " + member.username);
+            System.out.println("Welcome, " + member.username);
             System.out.println("""
-            What would you like to do?\n
-            1 Manage Plan\n
-            2 Find Sessions\n
-            3 Join a Session\n
-            4 Sign Out\n
+            What would you like to do?
+
+            1 Manage Plan
+            2 Enroll in a Session
+            3 Find Sessions
+            4 Sign Out
             """);
             String c = sc.nextLine();
             switch (c) {
                 case "1" -> memberPlanManager(sc, member);
-                case "2" -> sessionFinder (sc, member);
-                case "3" -> {
-                    System.out.println ("Plese enter the ID of the session you would like to join");
-                    String id = sc.nextLine ();
-                    for(int i = 0; i < DataStore.sessionCount; i++){
-                        if(DataStore.sessions[i].sessionId.equals (id))
-                            DataStore.sessions[i].addMember (member.firstName);
-                        System.out.println ("Successfully joined session" + DataStore.sessions[i].sessionId);
-                    }
-                }
-                default -> {
-                    return;
-                }
+                case "2" -> enrollInSession(sc, member);
+                case "3" -> sessionFinder(sc, member);    // extra feature
+                case "4" -> { return; }
+                default -> System.out.println("Invalid choice.");
             }
         }
     }
+
+    static void enrollInSession(Scanner sc, Member member) {
+        // Build a list of sessions this member can actually enroll in
+        WorkoutSession[] available = new WorkoutSession[DataStore.sessionCount];
+        int availCount = 0;
+
+        for (int i = 0; i < DataStore.sessionCount; i++) {
+            WorkoutSession s = DataStore.sessions[i];
+            if (s == null) continue;
+
+            // how many enrolled?
+            int enrolledCount = (s.members == null) ? 0 : s.members.size();
+
+            // already in this session?
+            boolean alreadyEnrolled = (s.members != null && s.members.contains(member.username));
+
+            // available capacity & not already enrolled
+            if (enrolledCount < s.capacity && !alreadyEnrolled) {
+                available[availCount++] = s;
+            }
+        }
+
+        if (availCount == 0) {
+            System.out.println("There are no sessions available for you to enroll in.");
+            return;
+        }
+
+        // Show all available sessions
+        System.out.println("Available sessions:");
+        for (int i = 0; i < availCount; i++) {
+            WorkoutSession s = available[i];
+            System.out.println(
+                    (i + 1) + ") " +
+                            "ID: " + s.sessionId +
+                            ", Name: " + s.sessionName +
+                            ", Type: " + s.type +
+                            ", Date: " + s.date +
+                            ", Time: " + s.time +
+                            ", Capacity: " + s.capacity
+            );
+        }
+
+        System.out.println("Enter the number of the session to enroll in,");
+        System.out.println("or press Enter to go back without enrolling:");
+        String choice = sc.nextLine().trim();
+
+        if (choice.isEmpty()) {
+            System.out.println("No session selected. Returning to member menu.");
+            return;
+        }
+
+        try {
+            int idx = Integer.parseInt(choice) - 1;
+            if (idx < 0 || idx >= availCount) {
+                System.out.println("Invalid choice.");
+                return;
+            }
+
+            WorkoutSession chosen = available[idx];
+
+            // add this member (use username so it's unique-ish)
+            chosen.addMember(member.username);
+
+            // record in progress.csv as: member ID, session ID
+            CsvIO.appendProgress(member.customerId, chosen.sessionId);
+
+            System.out.println("You have been enrolled in session " + chosen.sessionId);
+
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input.");
+        }
+    }
+
+
+
 
     public static void sessionFinder(Scanner sc, Member member){
         while (true) {
