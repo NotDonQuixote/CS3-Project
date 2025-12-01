@@ -92,7 +92,7 @@ public class RunGym {
         System.out.print("user: "); String u = sc.nextLine();
         System.out.print("pass: "); String p = sc.nextLine();
         Person x = Auth.login(u, p);
-        //Checks person type to show the right menu
+        //Checks person type to show the right menu by parsing username to the login method
         if (x instanceof Administrator) {
             ActivityLogger.log(u, "logged in as admin" + x.username);
             adminMenu(sc, u);
@@ -359,8 +359,7 @@ public class RunGym {
                 }
                 case "4" -> {
                     System.out.print("plan id: ");
-                    String pid = sc.nextLine();
-                    m.membership = (pid);
+                    m.membership = (sc.nextLine());
                     System.out.print("start: ");
                     m.startDate = sc.nextLine();
                     System.out.print("end: ");
@@ -595,7 +594,6 @@ public class RunGym {
             switch (c){
                 case "1" -> viewSessions(x);
                 case "2" -> {
-                    // Placeholder for Part 2
                     System.out.println("Please enter the ID of the Session you wish to view: ");
                     String sessionID = sc.nextLine ();
                     viewSessionMembers(sessionID);
@@ -631,6 +629,7 @@ public class RunGym {
         }
         return false;
     }
+//632-1039: Member Functions
 //Membership plan Manager
     static void managePlans(Scanner sc, String currentUser) {
         while (true) {

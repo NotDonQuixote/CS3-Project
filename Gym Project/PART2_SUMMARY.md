@@ -34,8 +34,8 @@ Created a custom exception class to handle gym-specific errors separately from g
 
 ```java
 public class GymException extends Exception {
-    public GymException(String message) { ... }
-    public GymException(String message, Throwable cause) { ... }
+    public GymException(String message) {  }
+    public GymException(String message, Throwable cause) {  }
 }
 ```
 
