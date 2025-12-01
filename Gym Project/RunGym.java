@@ -986,7 +986,7 @@ public class RunGym {
             if (s.trainerUsername != null && s.trainerUsername.equals(p.username)) {
                 any = true;
 
-                // 🔹 split s.time into start / end
+                // split s.time into start / end
                 String startTime = "";
                 String endTime = "";
                 if (s.time != null && !s.time.isBlank()) {
