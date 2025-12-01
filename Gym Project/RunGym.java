@@ -461,7 +461,6 @@ public class RunGym {
         return null;
     }
 
-
     static boolean deleteTrainer(String u) {
         for (int i = 0; i < DataStore.trainerCount; i++) {
             if (DataStore.trainers[i].username.equals(u)) {
@@ -580,6 +579,36 @@ public class RunGym {
                     return;
                 }
             }
+        }
+    }
+
+//This got removed in the previous commit for some reason.
+    static void trainerMenu(Scanner sc, Person x) {
+        while (true) {
+            System.out.println("Logged in as Trainer" +(x.firstName));
+            System.out.println("Logged in as Trainer " +(x.firstName));
+            System.out.println(" ");
+            System.out.println("1 View Sessions");
+            System.out.println("2 View Session Members");
+            System.out.println("3 Sign Out");
+            String c = sc.nextLine();
+            switch (c){
+                case "1" -> viewSessions(x);
+                case "2" -> {
+                    // Placeholder for Part 2
+                    System.out.println("Please enter the ID of the Session you wish to view: ");
+                    String sessionID = sc.nextLine ();
+                    viewSessionMembers(sessionID);
+                }
+                case "3" -> {
+                    return;
+                }
+                default -> {
+                    System.out.println ("Error, returning to Menu");
+                    trainerMenu (sc, x);
+                }
+            }
+
         }
     }
 
@@ -791,9 +820,6 @@ public class RunGym {
             System.out.println("Invalid input.");
         }
     }
-
-
-
 
     public static void sessionFinder(Scanner sc, Member member){
         while (true) {

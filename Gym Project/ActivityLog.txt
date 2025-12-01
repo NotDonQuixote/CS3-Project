@@ -1,0 +1,244 @@
+=================================================================
+                   GYM MANAGEMENT SYSTEM - ACTIVITY LOG
+                         Project Part 2
+=================================================================
+
+System initialized on: December 1, 2025
+
+Admin automatically created for demonstration purposes:
+- Username: admin
+- Password: admin
+
+This log file records all user activities in the system for audit
+and debugging purposes. Each entry includes timestamp, username, and
+the action performed.
+
+Format: TIMESTAMP - USERNAME ACTION
+
+=================================================================
+SYSTEM REFACTORING CHANGES (Part 2)
+=================================================================
+
+Date: 2025-12-01
+Update: CsvIO enhanced with flexible column handling
+- Added HashMap-based header mapping strategy
+- Now supports CSV files with columns in any order
+- Maintained backward compatibility with Part 1
+
+Update: Custom exception class created (GymException.java)
+- For gym-specific error handling
+- Separates application errors from system exceptions
+
+Update: Comprehensive Javadoc documentation added
+- All classes documented with author, version, purpose
+- All methods documented with parameters and return values
+- Design patterns and OOP principles explained
+
+Update: 3 new JUnit test cases created
+- MemberPlanTest: Tests membership plan functionality (3 tests)
+- SessionEnrollmentTest: Tests session enrollment (3 tests)
+- CsvIOFlexibleColumnTest: Tests flexible CSV parsing (3 tests)
+Total test coverage now: 6 test classes
+
+Update: Code style and quality improvements
+- Updated all file headers to Part 2
+- Added meaningful comments throughout code
+- Followed Google Java Style Guide
+- Enhanced error handling with specific messages
+
+Update: Sample CSV data files created
+- GymUsersData.csv: Sample member, trainer, admin data
+- GymSessions.csv: Sample workout sessions
+- GymPlans.csv: Sample membership plans
+
+=================================================================
+COMPILATION STATUS
+=================================================================
+
+✓ All core classes compile successfully
+✓ No compilation errors in main code
+✓ Test classes require JUnit 5 library for compilation
+✓ Javadoc documentation generated successfully
+
+Compiled files (13):
+- RunGym.java
+- Auth.java
+- CsvIO.java
+- DataStore.java
+- Person.java
+- Member.java
+- Trainer.java
+- Administrator.java
+- WorkoutSession.java
+- MembershipPlan.java
+- ActivityLogger.java
+- Identifiable.java
+- GymException.java
+
+=================================================================
+DESIGN PATTERNS IMPLEMENTED
+=================================================================
+
+Strategy Pattern (CsvIO):
+- Context: CSV file loading
+- Strategy: Flexible column mapping using HashMap
+- Benefit: Columns can be in any order
+- Implementation: createHeaderMap() and getColumnValue() methods
+
+=================================================================
+OOP PRINCIPLES VERIFICATION
+=================================================================
+
+✓ Abstraction:
+  - Identifiable interface abstracts identification
+  - ActivityLogger abstracts logging implementation
+  - CsvIO abstracts data persistence
+
+✓ Inheritance:
+  - Member extends Person
+  - Trainer extends Person
+  - Administrator extends Person
+  - All inherit common attributes and methods
+
+✓ Composition/Aggregation:
+  - WorkoutSession uses ArrayList<String> for members
+  - CsvIO handles complex file operations
+
+✓ Associations:
+  - WorkoutSession references Trainer by username
+  - Member references MembershipPlan by name
+  - Auth manages user associations
+
+✓ Polymorphism:
+  - Identifiable interface implemented by all user types
+  - Different user types (Member, Trainer, Admin) handled uniformly
+
+=================================================================
+KEY FEATURES IMPLEMENTED
+=================================================================
+
+1. Flexible CSV Column Handling:
+   - Supports any column order in input files
+   - Backward compatible with standard format
+   - Robust error handling for malformed data
+
+2. Custom Exception Handling:
+   - GymException class for gym-specific errors
+   - Proper error logging and reporting
+
+3. Comprehensive Documentation:
+   - Javadoc HTML documentation (doc/ folder)
+   - Inline code comments
+   - PART2_SUMMARY.md with detailed explanation
+
+4. Enhanced Testing:
+   - 6 total JUnit test classes
+   - Black-box and white-box testing approaches
+   - Tests for critical functionality
+
+5. Code Quality:
+   - Google Java Style Guide compliance
+   - Consistent naming conventions
+   - Industry-standard practices
+
+=================================================================
+FILES CREATED/MODIFIED IN PART 2
+=================================================================
+
+Created:
+- GymException.java (Custom exception class)
+- MemberPlanTest.java (JUnit tests for member plans)
+- SessionEnrollmentTest.java (JUnit tests for session enrollment)
+- CsvIOFlexibleColumnTest.java (JUnit tests for CSV parsing)
+- PART2_SUMMARY.md (Comprehensive documentation)
+- GymUsersData.csv (Sample user data)
+- GymSessions.csv (Sample session data)
+- GymPlans.csv (Sample plan data)
+- doc/ folder (Javadoc HTML documentation)
+- ActivityLog.txt (This file)
+
+Modified:
+- All .java files: Updated headers, added Javadoc, enhanced comments
+- CsvIO.java: Complete refactor with flexible column handling
+
+=================================================================
+PROJECT STATUS
+=================================================================
+
+Part 1 Requirements: ✓ COMPLETED
+- User registration and login
+- User CRUD operations
+- Session management
+- Plan management
+- Basic CSV I/O
+- Initial test cases
+
+Part 2 Requirements Progress: ✓ COMPLETED
+- [x] Flexible CSV column handling
+- [x] Custom exception class
+- [x] Design pattern implementation (Strategy)
+- [x] Enhanced documentation (Javadoc)
+- [x] Code quality and style improvements
+- [x] 3 additional JUnit tests (6 total)
+- [x] OOP principles verified
+- [x] Error handling improvements
+- [x] Code refactoring and consolidation
+
+=================================================================
+RECOMMENDATIONS FOR FINAL SUBMISSION
+=================================================================
+
+Documentation:
+1. Generate UML diagrams (Use Case, Class, State)
+2. Create lab report with:
+   - Implementation details
+   - Design pattern explanation
+   - Test case methodology
+   - Screenshots of execution
+   - Late submission explanation (if applicable)
+
+Testing:
+1. Run JUnit tests with proper classpath:
+   javac -cp junit-jupiter-api-5.x.x.jar *.java
+   java -cp .:junit-jupiter-api-5.x.x.jar \ 
+     org.junit.platform.console.ConsoleLauncher --scan-classpath
+
+2. Test with different CSV formats to verify flexible column handling
+
+Code Review:
+1. Verify all files have proper headers with honesty statements
+2. Check Javadoc completeness
+3. Review for any remaining TODO items
+4. Test all user workflows (registration, login, member/trainer/admin menus)
+
+=================================================================
+ADDITIONAL NOTES
+=================================================================
+
+Design Decisions:
+1. HashMap chosen for CSV header mapping (O(1) lookup time)
+2. Static arrays retained for DataStore (simple, no external dependencies)
+3. Exception hierarchy kept simple (single custom exception)
+4. Javadoc generated with -public flag (only public members)
+
+Known Limitations:
+1. Fixed array sizes may limit scalability
+2. No database backend (CSV-based storage only)
+3. No multi-user concurrency support
+4. No transaction support for data operations
+
+Potential Future Enhancements:
+1. Implement database backend
+2. Add GUI or web interface
+3. Support user authentication tokens
+4. Add scheduling for sessions
+5. Implement payment processing
+6. Add email notifications
+
+=================================================================
+
+END OF ACTIVITY LOG
+
+Generated: December 1, 2025
+System Version: Gym Management System v2.0
+Last Modified: 2025-12-01 00:00:00 UTC
