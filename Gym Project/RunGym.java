@@ -11,14 +11,16 @@
  */
 
 
-import javax.xml.crypto.Data;
-import java.util.Arrays;
 import java.util.Scanner;
+import java.time.LocalDate;
+
 
 /**
  * Main class for the Gym Management System.
  * Loads data from CSV files, shows menus, and saves data on exit.
  */
+
+
 public class RunGym {
     //main method
     public static void main(String[] args) {
@@ -493,8 +495,14 @@ public class RunGym {
                     s.type = sc.nextLine();
                     System.out.print("date: ");
                     s.date = sc.nextLine();
-                    System.out.print("time: ");
-                    s.time = sc.nextLine();
+
+                    // update start + end time separately, store as "start-end"
+                    System.out.print("start time: ");
+                    String startTime = sc.nextLine();
+                    System.out.print("end time: ");
+                    String endTime = sc.nextLine();
+                    s.time = startTime + "-" + endTime;
+
                     System.out.print("capacity: ");
                     s.capacity = parseIntSafe(sc.nextLine());
                     System.out.print("trainerUsername: ");
@@ -503,6 +511,7 @@ public class RunGym {
                     DataStore.sessionCount++;
                     ActivityLogger.log(currentUser, "added session " + s.sessionId);
                 }
+
                 case "2" -> {
                     System.out.print("SessionID, SessionName, Date, or ALL: ");
                     String q = sc.nextLine();
@@ -532,13 +541,22 @@ public class RunGym {
                     if (s != null) {
                         System.out.print("date: ");
                         s.date = sc.nextLine();
-                        System.out.print("time: ");
-                        s.time = sc.nextLine();
+
+                        // update start + end time separately, store as "start-end"
+                        System.out.print("start time: ");
+                        String startTime = sc.nextLine();
+                        System.out.print("end time: ");
+                        String endTime = sc.nextLine();
+                        s.time = startTime + "-" + endTime;
+
                         System.out.print("trainerUsername: ");
                         s.trainerUsername = sc.nextLine();
                         ActivityLogger.log(currentUser, "updated session " + id);
+                    } else {
+                        System.out.println("Session not found.");
                     }
                 }
+
                 case "4" -> {
                     System.out.print("sessionId: ");
                     String id = sc.nextLine();
@@ -564,6 +582,7 @@ public class RunGym {
             }
         }
     }
+
 
     static WorkoutSession findSession(String id) {
         for (int i = 0; i < DataStore.sessionCount; i++) {
@@ -844,14 +863,14 @@ public class RunGym {
 
     static void memberPlanManager(Scanner sc, Member member){
         System.out.println("""
-            What would you like to do with your membership plan?
+        What would you like to do with your membership plan?
 
-            1 Change Membership Plan
+        1 Change Membership Plan
 
-            2 Cancel Membership Plan
+        2 Cancel Membership Plan
 
-            3 Return to Member Menu
-            """);
+        3 Return to Member Menu
+        """);
         String c = sc.nextLine();
         switch (c) {
             case "1" -> {
@@ -905,8 +924,25 @@ public class RunGym {
                         System.out.println("Invalid choice.");
                         return;
                     }
-                    member.membership = DataStore.plans[idx].planName;
+
+                    MembershipPlan chosen = DataStore.plans[idx];
+
+                    // start + end dates based on plan duration
+                    LocalDate today = LocalDate.now();
+                    member.startDate = today.toString();
+
+                    if (chosen.durationMonths > 0) {
+                        LocalDate end = today.plusMonths(chosen.durationMonths);
+                        member.endDate = end.toString();
+                    } else {
+                        member.endDate = "";
+                    }
+
+                    member.membership = chosen.planName;
+
                     System.out.println("Your membership has been updated to: " + member.membership);
+                    System.out.println("Start Date: " + member.startDate);
+                    System.out.println("End Date:   " + member.endDate);
 
                     // persist change to CSV
                     CsvIO.saveUsers("GymUsersData.csv");
@@ -921,8 +957,10 @@ public class RunGym {
                 if (choice.equalsIgnoreCase("y") ||
                         choice.equals("1") ||
                         choice.equalsIgnoreCase("yes")) {
-                    // for now you only clear the field; real delete would also remove from DataStore + CSV
+                    // clear membership & dates
                     member.membership = "";
+                    member.startDate = "";
+                    member.endDate = "";
                     System.out.println("Membership cancelled.");
                     CsvIO.saveUsers("GymUsersData.csv");
                     System.out.println("Returning to login menu.");
@@ -937,42 +975,45 @@ public class RunGym {
         }
     }
 
-    //805-850 Trainer menu
-    static void trainerMenu(Scanner sc, Person x) {
-        while (true) {
-            System.out.println("Logged in as Trainer" +(x.firstName));
-            System.out.println(" ");
-            System.out.println("1 View Sessions");
-            System.out.println("2 View Session Members");
-            System.out.println("3 Sign Out");
-            String c = sc.nextLine();
-            switch (c){
-              case "1" -> viewSessions(x);
-                case "2" -> {
-                    // Placeholder for Part 2
-                    System.out.println("Please enter the ID of the Session you wish to view: ");
-                    String sessionID = sc.nextLine ();
-                    viewSessionMembers(sessionID);
-                }
-              case "3" -> {
-                    return;
-                }
-            }
+    //Displays sessions that are linked to the trainer's username
+    static void viewSessions(Person p) {
+        boolean any = false;
 
-        }
-    }
-//Displays sessions that are linked to the trainer's username
-    static void viewSessions(Person p){
         for (int i = 0; i < DataStore.sessionCount; i++) {
-            if (DataStore.sessions[i].trainerUsername.equals (p.username)) {
-                System.out.println (
-                        "Name: " + DataStore.sessions[i].sessionName
-                        + ", Date: " +DataStore.sessions[i].date
-                        + ", ID: " + DataStore.sessions[i].sessionId);
+            WorkoutSession s = DataStore.sessions[i];
+            if (s == null) continue;
+
+            if (s.trainerUsername != null && s.trainerUsername.equals(p.username)) {
+                any = true;
+
+                // 🔹 split s.time into start / end
+                String startTime = "";
+                String endTime = "";
+                if (s.time != null && !s.time.isBlank()) {
+                    String[] parts = s.time.split("-", 2);
+                    startTime = parts[0].trim();
+                    if (parts.length > 1) {
+                        endTime = parts[1].trim();
+                    }
+                }
+
+                System.out.println("==================================");
+                System.out.println("Session ID : " + s.sessionId);
+                System.out.println("Type       : " + s.type);
+                System.out.println("Capacity   : " + s.capacity);
+                System.out.println("Date       : " + s.date);
+                System.out.println("Start Time : " + startTime);
+                System.out.println("End Time   : " + endTime);
             }
         }
+
+        if (!any) {
+            System.out.println("You currently have no scheduled sessions.");
+        }
     }
-//Shows members who have joined a session
+
+
+    //Shows members who have joined a session
     static void viewSessionMembers(String session){
         for (int i = 0; i < DataStore.sessionCount; i++) {
             if (DataStore.sessions[i].sessionId.equals(session)) {
