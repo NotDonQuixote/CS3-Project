@@ -757,14 +757,14 @@ public class RunGym {
             WorkoutSession s = DataStore.sessions[i];
             if (s == null) continue;
 
-            // how many enrolled?
             int enrolledCount = (s.members == null) ? 0 : s.members.size();
-
-            // already in this session?
             boolean alreadyEnrolled = (s.members != null && s.members.contains(member.username));
 
-            // available capacity & not already enrolled
-            if (enrolledCount < s.capacity && !alreadyEnrolled) {
+            // remaining spots based on capacity - enrolled
+            int remainingSpots = s.capacity - enrolledCount;
+
+            // only offer sessions that still have spots and where this member isn't already in
+            if (remainingSpots > 0 && !alreadyEnrolled) {
                 available[availCount++] = s;
             }
         }
@@ -778,6 +778,10 @@ public class RunGym {
         System.out.println("Available sessions:");
         for (int i = 0; i < availCount; i++) {
             WorkoutSession s = available[i];
+
+            int enrolledCount = (s.members == null) ? 0 : s.members.size();
+            int remainingSpots = s.capacity - enrolledCount;
+
             System.out.println(
                     (i + 1) + ") " +
                             "ID: " + s.sessionId +
@@ -785,7 +789,8 @@ public class RunGym {
                             ", Type: " + s.type +
                             ", Date: " + s.date +
                             ", Time: " + s.time +
-                            ", Capacity: " + s.capacity
+                            ", Capacity: " + s.capacity +
+                            " (Spots left: " + remainingSpots + ")"
             );
         }
 
@@ -807,10 +812,8 @@ public class RunGym {
 
             WorkoutSession chosen = available[idx];
 
-            // add this member (use username so it's unique-ish)
             chosen.addMember(member.username);
 
-            // record in progress.csv as: member ID, session ID
             CsvIO.appendProgress(member.customerId, chosen.sessionId);
 
             System.out.println("You have been enrolled in session " + chosen.sessionId);
@@ -819,6 +822,7 @@ public class RunGym {
             System.out.println("Invalid input.");
         }
     }
+
 
     public static void sessionFinder(Scanner sc, Member member){
         while (true) {
@@ -1039,15 +1043,55 @@ public class RunGym {
 
 
     //Shows members who have joined a session
-    static void viewSessionMembers(String session){
-        for (int i = 0; i < DataStore.sessionCount; i++) {
-            if (DataStore.sessions[i].sessionId.equals(session)) {
-                System.out.println (
-                        "Name: " + DataStore.sessions[i].sessionName
-                                + DataStore.sessions[i].members);
+    static void viewSessionMembers(String sessionId) {
+        // Find the session first
+        WorkoutSession s = findSession(sessionId);
+        if (s == null) {
+            System.out.println("Session with ID " + sessionId + " was not found.");
+            return;
+        }
+
+        // ---- Session header ----
+        System.out.println("==================================");
+        System.out.println("Session ID : " + s.sessionId);
+        System.out.println("Name       : " + s.sessionName);
+        System.out.println("Type       : " + s.type);
+        System.out.println("Date       : " + s.date);
+
+        // Split time into start / end
+        String startTime = "";
+        String endTime   = "";
+        if (s.time != null && !s.time.isBlank()) {
+            String[] parts = s.time.split("-", 2);
+            startTime = parts[0].trim();
+            if (parts.length > 1) {
+                endTime = parts[1].trim();
             }
         }
+        System.out.println("Start Time : " + startTime);
+        System.out.println("End Time   : " + endTime);
+        System.out.println("----------------------------------");
+
+        // ---- Members ----
+        if (s.members == null || s.members.isEmpty()) {
+            System.out.println("No members are currently enrolled in this session.");
+            return;
+        }
+
+        System.out.println("Enrolled Members (" + s.members.size() + "):");
+
+        int idx = 1;
+        for (String username : s.members) {
+            Member m = Auth.findMember(username);
+            if (m != null) {
+                System.out.println(idx + ") " + m.username + " - " + m.firstName + " " + m.lastName);
+            } else {
+                System.out.println(idx + ") " + username);
+            }
+            idx++;
+        }
     }
+
 
     static int parseIntSafe(String s) {
         try { return Integer.parseInt(s); } catch (Exception e) { return 0; }
