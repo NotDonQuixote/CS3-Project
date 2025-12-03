@@ -1,10 +1,10 @@
 /*
  * Team 4
  * Name: Christian Lopez-Matulessy, Dante Morales, Cesar Trevizo
- * Date: 11/16/2025
+ * Date: 12/01/2025
  * Course: CS 3331 – Advanced Object-Oriented Programming
  * Instructor: Dr. Bhanukiran Gurijala
- * Project Part 1 - Gym Management System
+ * Project Part 2 - Gym Management System
  * Honesty Statement: We completed this work entirely on our own
  * without any outside sources, including peers,
  * experts, or online sources.
@@ -12,19 +12,71 @@
 
 import java.io.File;
 import java.io.FileWriter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 /**
  * Utility class for loading and saving users, sessions, and membership plans to CSV files.
- * This version matches the formats:
- *  - GymUsersData.csv : ID,First Name,Last Name,Username,Password,User Type,Membership,Start Date,End Date,Speciality
- *  - GymSessions.csv : ID,Type,Capacity,Date,Start Time,End Time,Trainer ID
- *  - GymPlans.csv    : ID,Plan Name,Duration in Months,Price
+ *
+ * <p>The main load/save methods expect CSV files in the standard formats:
+ * <ul>
+ *   <li>GymUsersData.csv : ID,First Name,Last Name,Username,Password,User Type,Membership,Start Date,End Date,Speciality</li>
+ *   <li>GymSessions.csv  : ID,Type,Capacity,Date,Start Time,End Time,Trainer ID</li>
+ *   <li>GymPlans.csv     : ID,Plan Name,Duration in Months,Price</li>
+ * </ul>
+ *
+ * <p>In addition, helper methods such as {@link #createHeaderMap(String)} and
+ * {@link #getColumnValue(String[], Map, String)} can be used if you want to
+ * implement flexible column handling based on header names.
  */
 public class CsvIO {
 
+    // ====================== HEADER MAPPING STRATEGY ======================
+
+    /**
+     * Maps column names to their indices for flexible CSV parsing.
+     * Creates a mapping from the CSV header row.
+     *
+     * @param header The header row from the CSV file
+     * @return A map from column names (normalized to lowercase) to column indices
+     */
+    private static Map<String, Integer> createHeaderMap(String header) {
+        Map<String, Integer> map = new HashMap<>();
+        String[] cols = header.split(",", -1);
+        for (int i = 0; i < cols.length; i++) {
+            String colName = cols[i].trim().toLowerCase();
+            map.put(colName, i);
+        }
+        return map;
+    }
+
+    /**
+     * Safely retrieves a value from the record using the header mapping.
+     *
+     * @param record  The array of values from a CSV row
+     * @param map     The header mapping
+     * @param colName The column name to retrieve
+     * @return The value at that column, or empty string if not found
+     */
+    private static String getColumnValue(String[] record, Map<String, Integer> map, String colName) {
+        Integer idx = map.get(colName.toLowerCase());
+        if (idx == null || idx < 0 || idx >= record.length) {
+            return "";
+        }
+        return record[idx].trim();
+    }
+
     // ====================== USERS ======================
 
+    /**
+     * Loads users from a GymUsersData.csv file in the standard column order.
+     * <p>Skips the header row and parses each subsequent row into Member, Trainer,
+     * or Administrator objects based on the "User Type" column. Optional fields for
+     * membership, start date, end date, and speciality are read when present.
+     *
+     * @param path The path to the CSV file
+     */
     public static void loadUsers(String path) {
         try {
             File f = new File(path);
@@ -39,14 +91,15 @@ public class CsvIO {
                 if (line.isEmpty()) continue;
 
                 String[] x = line.split(",", -1);
-                if (x.length < 6) continue; // must at least have ID, names, username, password, user type
+                // must at least have ID, names, username, password, user type
+                if (x.length < 6) continue;
 
-                int id          = parseIntSafe(val(x, 0));
-                String first    = val(x, 1);
-                String last     = val(x, 2);
-                String username = val(x, 3);
-                String password = val(x, 4);
-                String role     = val(x, 5); // "Member", "Trainer", "Admin"
+                int id           = parseIntSafe(val(x, 0));
+                String first     = val(x, 1);
+                String last      = val(x, 2);
+                String username  = val(x, 3);
+                String password  = val(x, 4);
+                String role      = val(x, 5); // "Member", "Trainer", "Admin"
                 String membership = x.length > 6 ? val(x, 6) : "";
                 String startDate  = x.length > 7 ? val(x, 7) : "";
                 String endDate    = x.length > 8 ? val(x, 8) : "";
@@ -87,11 +140,15 @@ public class CsvIO {
             }
             sc.close();
         } catch (Exception e) {
-            // silently ignore for now, or print if you want:
-            // System.out.println("Error loading users: " + e.getMessage());
+            // Optionally log: System.out.println("Error loading users: " + e.getMessage());
         }
     }
 
+    /**
+     * Saves all users (members, trainers, admins) to a CSV file in standard format.
+     *
+     * @param path The path to save the CSV file to
+     */
     public static void saveUsers(String path) {
         try {
             // Ensure every user has an ID; keep existing IDs if present.
@@ -154,13 +211,13 @@ public class CsvIO {
 
             w.close();
         } catch (Exception e) {
-            // System.out.println("Error saving users: " + e.getMessage());
+            // Optionally log: System.out.println("Error saving users: " + e.getMessage());
         }
     }
 
     /**
-     * Assign IDs to any users missing one, keeping existing IDs.
-     * Also keeps Trainer.trainerID in sync with the user ID.
+     * Assigns IDs to any users missing one, keeping existing IDs.
+     * Also ensures Trainer.trainerID stays in sync with the trainer's customerId.
      */
     private static void assignUserIds() {
         int maxId = 0;
@@ -206,6 +263,13 @@ public class CsvIO {
 
     // ====================== SESSIONS ======================
 
+    /**
+     * Loads workout sessions from a GymSessions.csv file in the standard column order.
+     * <p>Skips the header row and parses each subsequent row into WorkoutSession objects,
+     * reconstructing the {@code time} field from the separate start and end time columns.
+     *
+     * @param path The path to the CSV file
+     */
     public static void loadSessions(String path) {
         try {
             File f = new File(path);
@@ -220,7 +284,8 @@ public class CsvIO {
                 if (line.isEmpty()) continue;
 
                 String[] x = line.split(",", -1);
-                if (x.length < 7) continue; // ID,Type,Capacity,Date,Start,End,TrainerID
+                // ID,Type,Capacity,Date,Start,End,TrainerID
+                if (x.length < 7) continue;
 
                 WorkoutSession s = new WorkoutSession();
                 String idStr     = val(x, 0);
@@ -236,6 +301,7 @@ public class CsvIO {
                 s.sessionName = type; // no separate name in CSV, so use Type as the name
                 s.date        = date;
                 s.capacity    = parseIntSafe(capacity);
+
                 if (!startTime.isEmpty() || !endTime.isEmpty()) {
                     s.time = startTime + (endTime.isEmpty() ? "" : "-" + endTime);
                 } else {
@@ -249,13 +315,18 @@ public class CsvIO {
             }
             sc.close();
         } catch (Exception e) {
-            // System.out.println("Error loading sessions: " + e.getMessage());
+            // Optionally log: System.out.println("Error loading sessions: " + e.getMessage());
         }
     }
 
+    /**
+     * Saves all workout sessions to a CSV file in standard format.
+     *
+     * @param path The path to save the CSV file to
+     */
     public static void saveSessions(String path) {
         try {
-            // Make sure trainers have IDs for Trainer ID column
+            // Make sure trainers have IDs for the "Trainer ID" column
             assignUserIds();
 
             FileWriter w = new FileWriter(path);
@@ -300,10 +371,16 @@ public class CsvIO {
             }
             w.close();
         } catch (Exception e) {
-            // System.out.println("Error saving sessions: " + e.getMessage());
+            // Optionally log: System.out.println("Error saving sessions: " + e.getMessage());
         }
     }
 
+    /**
+     * Finds a trainer's username by their ID.
+     *
+     * @param id The trainer ID to search for
+     * @return The trainer's username, or empty string if not found
+     */
     private static String findTrainerUsernameById(int id) {
         if (id <= 0) return "";
         for (int i = 0; i < DataStore.trainerCount; i++) {
@@ -315,6 +392,12 @@ public class CsvIO {
         return "";
     }
 
+    /**
+     * Finds a trainer's ID by their username.
+     *
+     * @param username The trainer's username
+     * @return The trainer's ID, or 0 if not found
+     */
     private static int findTrainerIdByUsername(String username) {
         if (username == null) return 0;
         for (int i = 0; i < DataStore.trainerCount; i++) {
@@ -328,6 +411,12 @@ public class CsvIO {
 
     // ====================== PLANS ======================
 
+    /**
+     * Loads membership plans from a GymPlans.csv file in the standard column order.
+     * <p>Skips the header row and parses plan name, duration (months), and price.
+     *
+     * @param path The path to the CSV file
+     */
     public static void loadPlans(String path) {
         try {
             File f = new File(path);
@@ -342,7 +431,8 @@ public class CsvIO {
                 if (line.isEmpty()) continue;
 
                 String[] x = line.split(",", -1);
-                if (x.length < 4) continue; // ID,Plan Name,Duration in Months,Price
+                // ID,Plan Name,Duration in Months,Price
+                if (x.length < 4) continue;
 
                 // x[0] is ID, ignored by logic
                 String planName = val(x, 1);
@@ -358,10 +448,15 @@ public class CsvIO {
             }
             sc.close();
         } catch (Exception e) {
-            // System.out.println("Error loading plans: " + e.getMessage());
+            // Optionally log: System.out.println("Error loading plans: " + e.getMessage());
         }
     }
 
+    /**
+     * Saves all membership plans to a CSV file in standard format.
+     *
+     * @param path The path to save the CSV file to
+     */
     public static void savePlans(String path) {
         try {
             FileWriter w = new FileWriter(path);
@@ -381,22 +476,19 @@ public class CsvIO {
 
             w.close();
         } catch (Exception e) {
-            // System.out.println("Error saving plans: " + e.getMessage());
+            // Optionally log: System.out.println("Error saving plans: " + e.getMessage());
         }
     }
 
-    // ====================== helper methods ======================
+    // ====================== PROGRESS (Member Enrollments) ======================
 
-    static String val(String[] x, int i) {
-        if (i < 0 || i >= x.length) return "";
-        return x[i].trim();
-    }
-
-    static String s(String a) {
-        if (a == null) return "";
-        return a;
-    }
-
+    /**
+     * Appends a member's enrollment in a session to the progress.csv file.
+     * Creates the file with a header if it doesn't exist.
+     *
+     * @param memberId  The ID of the member
+     * @param sessionId The ID of the session
+     */
     public static void appendProgress(int memberId, String sessionId) {
         try {
             File f = new File("progress.csv");
@@ -413,15 +505,52 @@ public class CsvIO {
             w.write(memberId + "," + s(sessionId) + "\n");
             w.close();
         } catch (Exception e) {
-             System.out.println("Error writing progress.csv: " + e.getMessage());
+            System.out.println("Error writing progress.csv: " + e.getMessage());
         }
     }
 
+    // ====================== HELPER METHODS ======================
 
+    /**
+     * Safely returns the trimmed value at index {@code i} from a string array,
+     * or an empty string if the index is out of bounds.
+     *
+     * @param x The array of values
+     * @param i The index to read
+     * @return The trimmed value at that index, or empty string if invalid
+     */
+    static String val(String[] x, int i) {
+        if (i < 0 || i >= x.length) return "";
+        return x[i].trim();
+    }
+
+    /**
+     * Returns the string as-is, or empty string if null.
+     *
+     * @param a The string to check
+     * @return The string, or empty string if null
+     */
+    static String s(String a) {
+        if (a == null) return "";
+        return a;
+    }
+
+    /**
+     * Safely converts a string to an integer, returning 0 on failure.
+     *
+     * @param s The string to parse
+     * @return The integer value, or 0 if parsing fails
+     */
     static int parseIntSafe(String s) {
         try { return Integer.parseInt(s); } catch (Exception e) { return 0; }
     }
 
+    /**
+     * Safely converts a string to a double, returning 0.0 on failure.
+     *
+     * @param s The string to parse
+     * @return The double value, or 0.0 if parsing fails
+     */
     static double parseDoubleSafe(String s) {
         try { return Double.parseDouble(s); } catch (Exception e) { return 0.0; }
     }
