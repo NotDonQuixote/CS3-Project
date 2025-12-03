@@ -41,6 +41,8 @@ public class CsvIO {
      * @param header The header row from the CSV file
      * @return A map from column names (normalized to lowercase) to column indices
      */
+
+    // Strategy pattern: header-based column mapping so CSV column order can vary.
     private static Map<String, Integer> createHeaderMap(String header) {
         Map<String, Integer> map = new HashMap<>();
         String[] cols = header.split(",", -1);
@@ -70,10 +72,8 @@ public class CsvIO {
     // ====================== USERS ======================
 
     /**
-     * Loads users from a GymUsersData.csv file in the standard column order.
-     * <p>Skips the header row and parses each subsequent row into Member, Trainer,
-     * or Administrator objects based on the "User Type" column. Optional fields for
-     * membership, start date, end date, and speciality are read when present.
+     * Loads users from a CSV file with flexible column ordering.
+     * Supports different column orders in the CSV file.
      *
      * @param path The path to the CSV file
      */
@@ -83,64 +83,72 @@ public class CsvIO {
             if (!f.exists()) return;
             Scanner sc = new Scanner(f);
 
-            // Skip header
-            if (sc.hasNextLine()) sc.nextLine();
+            // Read and parse header
+            if (!sc.hasNextLine()) {
+                sc.close();
+                return;
+            }
+            String headerLine = sc.nextLine();
+            Map<String, Integer> headerMap = createHeaderMap(headerLine);
 
             while (sc.hasNextLine()) {
                 String line = sc.nextLine().trim();
                 if (line.isEmpty()) continue;
 
-                String[] x = line.split(",", -1);
-                // must at least have ID, names, username, password, user type
-                if (x.length < 6) continue;
+                String[] record = line.split(",", -1);
 
-                int id           = parseIntSafe(val(x, 0));
-                String first     = val(x, 1);
-                String last      = val(x, 2);
-                String username  = val(x, 3);
-                String password  = val(x, 4);
-                String role      = val(x, 5); // "Member", "Trainer", "Admin"
-                String membership = x.length > 6 ? val(x, 6) : "";
-                String startDate  = x.length > 7 ? val(x, 7) : "";
-                String endDate    = x.length > 8 ? val(x, 8) : "";
-                String speciality = x.length > 9 ? val(x, 9) : "";
+                try {
+                    int id = parseIntSafe(getColumnValue(record, headerMap, "id"));
+                    String first = getColumnValue(record, headerMap, "first name");
+                    String last = getColumnValue(record, headerMap, "last name");
+                    String username = getColumnValue(record, headerMap, "username");
+                    String password = getColumnValue(record, headerMap, "password");
+                    String role = getColumnValue(record, headerMap, "user type");
+                    String membership = getColumnValue(record, headerMap, "membership");
+                    String startDate = getColumnValue(record, headerMap, "start date");
+                    String endDate = getColumnValue(record, headerMap, "end date");
+                    String speciality = getColumnValue(record, headerMap, "speciality");
 
-                if (role.equalsIgnoreCase("ADMIN")) {
-                    Administrator a = new Administrator();
-                    a.customerId = id;
-                    a.firstName = first;
-                    a.lastName = last;
-                    a.username = username;
-                    a.password = password;
-                    DataStore.admins[DataStore.adminCount++] = a;
+                    if (role.equalsIgnoreCase("ADMIN")) {
+                        Administrator a = new Administrator();
+                        a.customerId = id;
+                        a.firstName = first;
+                        a.lastName = last;
+                        a.username = username;
+                        a.password = password;
+                        DataStore.admins[DataStore.adminCount++] = a;
 
-                } else if (role.equalsIgnoreCase("MEMBER")) {
-                    Member m = new Member();
-                    m.customerId = id;
-                    m.firstName = first;
-                    m.lastName = last;
-                    m.username = username;
-                    m.password = password;
-                    m.membership = membership;
-                    m.startDate = startDate;
-                    m.endDate = endDate;
-                    DataStore.members[DataStore.memberCount++] = m;
+                    } else if (role.equalsIgnoreCase("MEMBER")) {
+                        Member m = new Member();
+                        m.customerId = id;
+                        m.firstName = first;
+                        m.lastName = last;
+                        m.username = username;
+                        m.password = password;
+                        m.membership = membership;
+                        m.startDate = startDate;
+                        m.endDate = endDate;
+                        DataStore.members[DataStore.memberCount++] = m;
 
-                } else if (role.equalsIgnoreCase("TRAINER")) {
-                    Trainer t = new Trainer();
-                    t.customerId = id;
-                    t.trainerID = id; // keep trainerID in sync with overall ID
-                    t.firstName = first;
-                    t.lastName = last;
-                    t.username = username;
-                    t.password = password;
-                    t.specialty = speciality;
-                    DataStore.trainers[DataStore.trainerCount++] = t;
+                    } else if (role.equalsIgnoreCase("TRAINER")) {
+                        Trainer t = new Trainer();
+                        t.customerId = id;
+                        t.trainerID = id;
+                        t.firstName = first;
+                        t.lastName = last;
+                        t.username = username;
+                        t.password = password;
+                        t.specialty = speciality;
+                        DataStore.trainers[DataStore.trainerCount++] = t;
+                    }
+                } catch (Exception e) {
+                    // Log parse error but continue with next record
+                    System.err.println("Error parsing user record: " + e.getMessage());
                 }
             }
             sc.close();
         } catch (Exception e) {
-            // Optionally log: System.out.println("Error loading users: " + e.getMessage());
+            System.err.println("Error loading users: " + e.getMessage());
         }
     }
 
@@ -264,9 +272,7 @@ public class CsvIO {
     // ====================== SESSIONS ======================
 
     /**
-     * Loads workout sessions from a GymSessions.csv file in the standard column order.
-     * <p>Skips the header row and parses each subsequent row into WorkoutSession objects,
-     * reconstructing the {@code time} field from the separate start and end time columns.
+     * Loads workout sessions from a CSV file with flexible column ordering.
      *
      * @param path The path to the CSV file
      */
@@ -276,46 +282,51 @@ public class CsvIO {
             if (!f.exists()) return;
             Scanner sc = new Scanner(f);
 
-            // Skip header
-            if (sc.hasNextLine()) sc.nextLine();
+            if (!sc.hasNextLine()) {
+                sc.close();
+                return;
+            }
+            String headerLine = sc.nextLine();
+            Map<String, Integer> headerMap = createHeaderMap(headerLine);
 
             while (sc.hasNextLine()) {
                 String line = sc.nextLine().trim();
                 if (line.isEmpty()) continue;
 
-                String[] x = line.split(",", -1);
-                // ID,Type,Capacity,Date,Start,End,TrainerID
-                if (x.length < 7) continue;
+                String[] record = line.split(",", -1);
 
-                WorkoutSession s = new WorkoutSession();
-                String idStr     = val(x, 0);
-                String type      = val(x, 1);
-                String capacity  = val(x, 2);
-                String date      = val(x, 3);
-                String startTime = val(x, 4);
-                String endTime   = val(x, 5);
-                String trainerId = val(x, 6);
+                try {
+                    WorkoutSession s = new WorkoutSession();
+                    String idStr = getColumnValue(record, headerMap, "id");
+                    String type = getColumnValue(record, headerMap, "type");
+                    String capacity = getColumnValue(record, headerMap, "capacity");
+                    String date = getColumnValue(record, headerMap, "date");
+                    String startTime = getColumnValue(record, headerMap, "start time");
+                    String endTime = getColumnValue(record, headerMap, "end time");
+                    String trainerId = getColumnValue(record, headerMap, "trainer id");
 
-                s.sessionId   = idStr;
-                s.type        = type;
-                s.sessionName = type; // no separate name in CSV, so use Type as the name
-                s.date        = date;
-                s.capacity    = parseIntSafe(capacity);
+                    s.sessionId = idStr;
+                    s.type = type;
+                    s.sessionName = type;
+                    s.date = date;
+                    s.capacity = parseIntSafe(capacity);
+                    if (!startTime.isEmpty() || !endTime.isEmpty()) {
+                        s.time = startTime + (endTime.isEmpty() ? "" : "-" + endTime);
+                    } else {
+                        s.time = "";
+                    }
 
-                if (!startTime.isEmpty() || !endTime.isEmpty()) {
-                    s.time = startTime + (endTime.isEmpty() ? "" : "-" + endTime);
-                } else {
-                    s.time = "";
+                    int tId = parseIntSafe(trainerId);
+                    s.trainerUsername = findTrainerUsernameById(tId);
+
+                    DataStore.sessions[DataStore.sessionCount++] = s;
+                } catch (Exception e) {
+                    System.err.println("Error parsing session record: " + e.getMessage());
                 }
-
-                int tId = parseIntSafe(trainerId);
-                s.trainerUsername = findTrainerUsernameById(tId);
-
-                DataStore.sessions[DataStore.sessionCount++] = s;
             }
             sc.close();
         } catch (Exception e) {
-            // Optionally log: System.out.println("Error loading sessions: " + e.getMessage());
+            System.err.println("Error loading sessions: " + e.getMessage());
         }
     }
 
@@ -412,45 +423,51 @@ public class CsvIO {
     // ====================== PLANS ======================
 
     /**
-     * Loads membership plans from a GymPlans.csv file in the standard column order.
-     * <p>Skips the header row and parses plan name, duration (months), and price.
+     * Loads membership plans from a CSV file with flexible column ordering.
      *
      * @param path The path to the CSV file
      */
+
     public static void loadPlans(String path) {
         try {
             File f = new File(path);
             if (!f.exists()) return;
             Scanner sc = new Scanner(f);
 
-            // Skip header
-            if (sc.hasNextLine()) sc.nextLine();
+            if (!sc.hasNextLine()) {
+                sc.close();
+                return;
+            }
+            String headerLine = sc.nextLine();
+            Map<String, Integer> headerMap = createHeaderMap(headerLine);
 
             while (sc.hasNextLine()) {
                 String line = sc.nextLine().trim();
                 if (line.isEmpty()) continue;
 
-                String[] x = line.split(",", -1);
-                // ID,Plan Name,Duration in Months,Price
-                if (x.length < 4) continue;
+                String[] record = line.split(",", -1);
 
-                // x[0] is ID, ignored by logic
-                String planName = val(x, 1);
-                int duration    = parseIntSafe(val(x, 2));
-                double price    = parseDoubleSafe(val(x, 3));
+                try {
+                    String planName = getColumnValue(record, headerMap, "plan name");
+                    int duration = parseIntSafe(getColumnValue(record, headerMap, "duration in months"));
+                    double price = parseDoubleSafe(getColumnValue(record, headerMap, "price"));
 
-                MembershipPlan p = new MembershipPlan();
-                p.planName = planName;
-                p.durationMonths = duration;
-                p.price = price;
+                    MembershipPlan p = new MembershipPlan();
+                    p.planName = planName;
+                    p.durationMonths = duration;
+                    p.price = price;
 
-                DataStore.plans[DataStore.planCount++] = p;
+                    DataStore.plans[DataStore.planCount++] = p;
+                } catch (Exception e) {
+                    System.err.println("Error parsing plan record: " + e.getMessage());
+                }
             }
             sc.close();
         } catch (Exception e) {
-            // Optionally log: System.out.println("Error loading plans: " + e.getMessage());
+            System.err.println("Error loading plans: " + e.getMessage());
         }
     }
+
 
     /**
      * Saves all membership plans to a CSV file in standard format.

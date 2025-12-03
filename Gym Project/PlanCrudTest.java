@@ -10,13 +10,16 @@
  * experts, or online sources.
  */
 
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+//import org.junit.jupiter.api.Test;
+//import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.Test;
+import static org.junit.Assert.*;
 
 public class PlanCrudTest {
 
     @Test
-    void add_and_delete_plan() {
+    public void add_and_delete_plan() {
         DataStore.planCount = 0;
 
         MembershipPlan p = new MembershipPlan();

@@ -10,13 +10,16 @@
  * experts, or online sources.
  */
 
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+//import org.junit.jupiter.api.Test;
+//import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.Test;
+import static org.junit.Assert.*;
 
 public class AuthUsernameTakenTest {
 
     @Test
-    void usernameTaken_basic() {
+    public void usernameTaken_basic() {
         DataStore.memberCount = 0;
         DataStore.trainerCount = 0;
         DataStore.adminCount = 0;

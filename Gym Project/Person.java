@@ -18,7 +18,7 @@
  * @author Team 4
  * @version 2.0
  */
-public class Person {
+public abstract class Person {
     //TODO: make Customers and Trainers a subclass of People so you can add end dates to customers, and specialties to trainers
 
     /** Unique identifier for the person in the system */

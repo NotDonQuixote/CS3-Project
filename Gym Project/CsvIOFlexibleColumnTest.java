@@ -10,8 +10,11 @@
  * experts, or online sources.
  */
 
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+//import org.junit.jupiter.api.Test;
+//import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.Test;
+import static org.junit.Assert.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -23,7 +26,7 @@ import java.nio.file.Paths;
 public class CsvIOFlexibleColumnTest {
 
     @Test
-    void testLoadUsersWithDifferentColumnOrder() throws IOException {
+    public void testLoadUsersWithDifferentColumnOrder() throws IOException {
         // Reset data store
         DataStore.memberCount = 0;
         DataStore.trainerCount = 0;
@@ -34,7 +37,7 @@ public class CsvIOFlexibleColumnTest {
         FileWriter fw = new FileWriter(testFilePath);
         fw.write("User Type,Password,Last Name,First Name,Username,ID,Speciality,Membership,Start Date,End Date\n");
         fw.write("Member,pass123,Doe,John,johndoe,1,,Premium,2025-01-01,2025-12-31\n");
-        fw.write("Trainer,pass456,Smith,Jane,janesmith,2,,,,Weightlifting\n");
+        fw.write("Trainer,pass456,Smith,Jane,janesmith,2,Weightlifting,,,\n");
         fw.close();
 
         // Load the CSV
@@ -61,7 +64,7 @@ public class CsvIOFlexibleColumnTest {
     }
 
     @Test
-    void testSaveAndReloadUsers() throws IOException {
+    public void testSaveAndReloadUsers() throws IOException {
         // Reset data store
         DataStore.memberCount = 0;
         DataStore.trainerCount = 0;
@@ -98,7 +101,7 @@ public class CsvIOFlexibleColumnTest {
     }
 
     @Test
-    void testLoadSessionsWithDifferentColumnOrder() throws IOException {
+    public void testLoadSessionsWithDifferentColumnOrder() throws IOException {
         // Reset data store
         DataStore.sessionCount = 0;
         DataStore.trainerCount = 0;

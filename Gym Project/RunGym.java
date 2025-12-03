@@ -91,20 +91,27 @@ public class RunGym {
     static void login(Scanner sc) {
         System.out.print("user: "); String u = sc.nextLine();
         System.out.print("pass: "); String p = sc.nextLine();
-        Person x = Auth.login(u, p);
-        //Checks person type to show the right menu by parsing username to the login method
-        if (x instanceof Administrator) {
-            ActivityLogger.log(u, "logged in as admin" + x.username);
-            adminMenu(sc, u);
-        } else if (x instanceof Member) {
-            ActivityLogger.log(u, "logged in as member" + x.username);
-            memberMenu(sc, (Member) x);
-        } else if (x instanceof Trainer) {
-            ActivityLogger.log(u, "logged in as trainer" + x.username);
-            trainerMenu(sc, x);
+        try {
+            Person x = Auth.login(u, p);  // may throw GymException
+
+            if (x instanceof Administrator) {
+                ActivityLogger.log(u, "logged in as admin " + x.username);
+                adminMenu(sc, u);
+            } else if (x instanceof Member) {
+                ActivityLogger.log(u, "logged in as member " + x.username);
+                memberMenu(sc, (Member) x);
+            } else if (x instanceof Trainer) {
+                ActivityLogger.log(u, "logged in as trainer " + x.username);
+                trainerMenu(sc, x);
+            }
+        } catch (GymException e) {
+            // Handle error separately from normal path
+            System.out.println(e.getMessage());
+            ActivityLogger.log(u, "failed login: " + e.getMessage());
         }
     }
-//74-443 - Admin functions
+
+    //74-443 - Admin functions
     static void adminMenu(Scanner sc, String currentUser) {
         while (true) {
             System.out.println("Logged in as admin: " + (currentUser));
@@ -585,7 +592,6 @@ public class RunGym {
     static void trainerMenu(Scanner sc, Person x) {
         while (true) {
             System.out.println("Logged in as Trainer" +(x.firstName));
-            System.out.println("Logged in as Trainer " +(x.firstName));
             System.out.println(" ");
             System.out.println("1 View Sessions");
             System.out.println("2 View Session Members");

@@ -82,21 +82,30 @@ public class Auth {
      * @param p The password
      * @return The Person object if credentials are valid, null otherwise
      */
-    public static Person login(String u, String p) {
+    public static Person login(String username, String password) throws GymException {
         for (int i = 0; i < DataStore.memberCount; i++) {
             Member m = DataStore.members[i];
-            if (m.username.equals(u) && m.password.equals(p)) return m;
+            if (m.username.equals(username) && m.password.equals(password)) {
+                return m;
+            }
         }
         for (int i = 0; i < DataStore.trainerCount; i++) {
             Trainer t = DataStore.trainers[i];
-            if (t.username.equals(u) && t.password.equals(p)) return t;
+            if (t.username.equals(username) && t.password.equals(password)) {
+                return t;
+            }
         }
         for (int i = 0; i < DataStore.adminCount; i++) {
             Administrator a = DataStore.admins[i];
-            if (a.username.equals(u) && a.password.equals(p)) return a;
+            if (a.username.equals(username) && a.password.equals(password)) {
+                return a;
+            }
         }
-        return null;
+
+        // If we got here, no match found
+        throw new GymException("Invalid username or password. Please try again.");
     }
+
 
     /**
      * Finds a member by username, first name, or last name.

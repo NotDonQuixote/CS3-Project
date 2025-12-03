@@ -10,32 +10,39 @@
  * experts, or online sources.
  */
 
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+// Was having some problems with this IDE with Junit 5 so for now decided to switch to Junit4
+//import org.junit.jupiter.api.Test;
+//import static org.junit.jupiter.api.Assertions.*;
 
-//Error: java: package or.junit.jupiter.api does not exist
-//My IDE doesn't seem to have this dependency, and I'm trying to find it to get it working -Dante
+import org.junit.Test;
+import static org.junit.Assert.*;
 
 public class AuthLoginTest {
 
     @Test
-    void login_member_admin() {
+    public void login_member_admin() throws GymException {
+        // reset datastore
         DataStore.memberCount = 0;
         DataStore.trainerCount = 0;
         DataStore.adminCount = 0;
 
+        // set up a member
         Member m = new Member();
         m.username = "mem1";
         m.password = "p1";
         DataStore.members[DataStore.memberCount++] = m;
 
+        // set up an admin
         Administrator a = new Administrator();
         a.username = "admin";
         a.password = "admin";
         DataStore.admins[DataStore.adminCount++] = a;
 
-        assertTrue(Auth.login("mem1","p1") instanceof Member);
-        assertTrue(Auth.login("admin","admin") instanceof Administrator);
-        assertNull(Auth.login("x","y"));
+        // valid logins should return the right type (no exception thrown)
+        assertTrue(Auth.login("mem1", "p1") instanceof Member);
+        assertTrue(Auth.login("admin", "admin") instanceof Administrator);
+
+        // invalid login should now THROW GymException instead of returning null
+        assertThrows(GymException.class, () -> Auth.login("x", "y"));
     }
 }
